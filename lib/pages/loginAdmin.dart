@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:ikillair/pages/createaccount.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginAdmin extends StatefulWidget {
+  const LoginAdmin({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginAdmin> createState() => _LoginAdminState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginAdminState extends State<LoginAdmin> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -35,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Welcome back',
+                  'Welcome back, Admin',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -94,32 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                     }
                     return null;
                   },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                         Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CreateAccount()),
-                      );
-                      },
-                      child: const Text(
-                        'Are you an admin?',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Forgot your password?',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
+                ),                
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
@@ -148,31 +122,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Don't have an account?",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                      TextButton(
-                      onPressed: () {
-                         Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CreateAccount()),
-                      );
-                      },
-                      child: const Text(
-                        'Sign up',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
