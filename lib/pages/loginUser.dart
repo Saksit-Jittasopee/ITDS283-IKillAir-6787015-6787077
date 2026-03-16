@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/createAccount.dart';
-import 'package:ikillair/pages/loginAdmin.dart';
+import 'package:ikillair/pages/forgotPassword1.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -102,18 +102,11 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     TextButton(
                       onPressed: () {
-                         Navigator.push(
+                        Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const LoginAdmin()),
+                        MaterialPageRoute(builder: (context) => const forgotPassword1()),
                       );
                       },
-                      child: const Text(
-                        'Are you an admin?',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
                       child: const Text(
                         'Forgot your password?',
                         style: TextStyle(color: Colors.blue),
