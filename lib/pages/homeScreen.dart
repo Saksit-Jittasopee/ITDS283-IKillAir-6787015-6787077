@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(width: 15),
                       const CircleAvatar(
                         radius: 25,
-                        //backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                        backgroundImage: NetworkImage(''),
                       ),
                     ],
                   ),
