@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     const CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                      backgroundImage: NetworkImage(''),
                     ),
                     Positioned(
                       bottom: 0,

@@ -4,7 +4,6 @@ import 'package:ikillair/pages/newsScreen.dart';
 import 'package:ikillair/pages/pollutionScreen.dart';
 import 'package:ikillair/pages/weatherScreen.dart';
 import 'package:ikillair/pages/productScreen.dart';
-import 'package:ikillair/pages/loginUser.dart';
 
 void main() {
   runApp(const MyApp());

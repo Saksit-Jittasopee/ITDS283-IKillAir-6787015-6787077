@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
 class WeatherScreen extends StatelessWidget {
   const WeatherScreen({super.key});
@@ -27,11 +29,30 @@ class WeatherScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.notifications_none, size: 28),
-                      SizedBox(width: 15),
-                      CircleAvatar(radius: 20),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -39,7 +60,7 @@ class WeatherScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                //child: Image.network('https://via.placeholder.com/400x250', fit: BoxFit.cover),
+                child: Image.network('', fit: BoxFit.cover),
               ),
               const SizedBox(height: 20),
               Row(

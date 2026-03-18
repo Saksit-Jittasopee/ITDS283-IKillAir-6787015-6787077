@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
 class OurTeamScreen extends StatelessWidget {
   const OurTeamScreen({super.key});
@@ -30,11 +32,27 @@ class OurTeamScreen extends StatelessWidget {
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.notifications_none, size: 28),
-                      const SizedBox(width: 15),
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(''),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
                       ),
                     ],
                   ),
@@ -44,14 +62,14 @@ class OurTeamScreen extends StatelessWidget {
               _buildMemberRow(
                 'Chanasorn Chirapongsaton',
                 '6787015',
-                '',
+                'assets/images/team/Saksit_AI_Days_1.jpg',
                 true,
               ),
               const SizedBox(height: 40),
               _buildMemberRow(
                 'Saksit Jittasopee',
                 '6787077',
-                '',
+                'assets/images/team/Saksit_AI_Days_1.jpg',
                 false,
               ),
             ],

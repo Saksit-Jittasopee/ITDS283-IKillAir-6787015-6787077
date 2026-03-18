@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
-class PollutionScreen extends StatelessWidget {
+class PollutionScreen extends StatefulWidget {
   const PollutionScreen({super.key});
+
+  @override
+  State<PollutionScreen> createState() => _PollutionScreenState();
+}
+
+class _PollutionScreenState extends State<PollutionScreen> {
+  bool isMyCountry = true;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +35,30 @@ class PollutionScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.notifications_none, size: 28),
-                      SizedBox(width: 15),
-                      CircleAvatar(radius: 20),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -38,14 +66,26 @@ class PollutionScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  _buildTab('My Country', true),
-                  _buildTab('Global', false),
+                  GestureDetector(
+                    onTap: () => setState(() => isMyCountry = true),
+                    child: _buildTab('My Country', isMyCountry),
+                  ),
+                  GestureDetector(
+                    onTap: () => setState(() => isMyCountry = false),
+                    child: _buildTab('Global', !isMyCountry),
+                  ),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Row(
-                      children: const [Text('22/2/2026 '), Icon(Icons.arrow_drop_down)],
+                      children: const [
+                        Text('22/2/2026 '),
+                        Icon(Icons.arrow_drop_down),
+                      ],
                     ),
                   )
                 ],
@@ -54,13 +94,25 @@ class PollutionScreen extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(30),
-                decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(25)),
+                decoration: BoxDecoration(
+                  color: isMyCountry ? Colors.amber : Colors.redAccent,
+                  borderRadius: BorderRadius.circular(25),
+                ),
                 child: Column(
-                  children: const [
-                    Text('AQI', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('92', style: TextStyle(fontSize: 70, fontWeight: FontWeight.bold)),
-                    Text('Bangkok, Thailand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('Status: Clean', style: TextStyle(color: Colors.black54)),
+                  children: [
+                    const Text('AQI', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      isMyCountry ? '92' : '179',
+                      style: const TextStyle(fontSize: 70, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      isMyCountry ? 'Bangkok, Thailand' : 'Lahore, Pakistan',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      isMyCountry ? 'Status: Clean' : 'Status: Poor',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                   ],
                 ),
               ),
@@ -71,10 +123,10 @@ class PollutionScreen extends StatelessWidget {
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
                   children: [
-                    _buildSensorCard('CO2 Level', '130', 'PPM'),
-                    _buildSensorCard('NO2 Level', '120', 'PPM'),
-                    _buildSensorCard('NH3 Level', '12', 'PPM'),
-                    _buildSensorCard('SO2 Level', '120', 'PPM'),
+                    _buildSensorCard('CO2 Level', isMyCountry ? '130' : '450', 'PPM'),
+                    _buildSensorCard('NO2 Level', isMyCountry ? '120' : '210', 'PPM'),
+                    _buildSensorCard('NH3 Level', isMyCountry ? '12' : '45', 'PPM'),
+                    _buildSensorCard('SO2 Level', isMyCountry ? '120' : '180', 'PPM'),
                   ],
                 ),
               )
@@ -89,8 +141,14 @@ class PollutionScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(right: 10),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-      decoration: BoxDecoration(color: isSelected ? Colors.blue : Colors.grey[100], borderRadius: BorderRadius.circular(15)),
-      child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.blue : Colors.grey[100],
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+      ),
     );
   }
 
@@ -100,7 +158,9 @@ class PollutionScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
