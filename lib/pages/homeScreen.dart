@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -25,11 +27,27 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.notifications_none, size: 30),
-                      const SizedBox(width: 15),
-                      const CircleAvatar(
-                        radius: 25,
-                        backgroundImage: NetworkImage(''),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
                       ),
                     ],
                   ),

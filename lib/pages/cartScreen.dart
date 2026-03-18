@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -19,15 +21,26 @@ class CartScreen extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(Icons.arrow_back_ios, size: 20),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
                       ),
-                      const SizedBox(width: 15),
-                      const Text(
-                        'Cart',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
                       ),
                     ],
                   ),

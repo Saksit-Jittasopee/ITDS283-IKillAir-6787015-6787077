@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
 class NewsScreen extends StatelessWidget {
   const NewsScreen({super.key});
@@ -14,13 +16,32 @@ class NewsScreen extends StatelessWidget {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('News', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                children: [
+                  const Text('News', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   Row(
                     children: [
-                      Icon(Icons.notifications_none, size: 28),
-                      SizedBox(width: 15),
-                      CircleAvatar(radius: 20),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -29,13 +50,13 @@ class NewsScreen extends StatelessWidget {
               const Text('Latest News', style: TextStyle(fontSize: 20, color: Colors.indigo)),
               const SizedBox(height: 20),
               _buildNewsItem(
-                'https://google.com',
+                '',
                 'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
                 '1 Hour Ago',
               ),
               const SizedBox(height: 20),
               _buildNewsItem(
-                'https://google.com',
+                '',
                 'รัฐบาลสั่งเข้มลดการใช้พลังงาน',
                 '2 Hours Ago',
               ),

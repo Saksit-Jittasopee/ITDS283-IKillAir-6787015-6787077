@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/cartScreen.dart';
+import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/profileScreen.dart';
 
 class ProductScreen extends StatelessWidget {
   const ProductScreen({super.key});
@@ -18,11 +21,37 @@ class ProductScreen extends StatelessWidget {
                   const Text('Product', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   Row(
                     children: [
-                      const Icon(Icons.shopping_cart_outlined, size: 28),
-                      const SizedBox(width: 15),
-                      const Icon(Icons.notifications_none, size: 28),
-                      const SizedBox(width: 15),
-                      const CircleAvatar(radius: 20),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CartScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.shopping_cart_outlined, size: 28),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(''),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -61,10 +90,10 @@ class ProductScreen extends StatelessWidget {
                   mainAxisSpacing: 15,
                   childAspectRatio: 0.8,
                   children: [
-                    _buildProductCard('HealthPro 101', '1000.00 Baht'),
-                    _buildProductCard('Super Series', '1500.00 Baht'),
-                    _buildProductCard('AT-500', '5900.00 Baht'),
-                    _buildProductCard('RZD-Airclean', '9990.50 Baht'),
+                    _buildProductCard(context, 'HealthPro 101', '1000.00 Baht'),
+                    _buildProductCard(context, 'Super Series', '1500.00 Baht'),
+                    _buildProductCard(context, 'AT-500', '5900.00 Baht'),
+                    _buildProductCard(context, 'RZD-Airclean', '9990.50 Baht'),
                   ],
                 ),
               ),
@@ -87,7 +116,7 @@ class ProductScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductCard(String name, String price) {
+  Widget _buildProductCard(BuildContext context, String name, String price) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -107,7 +136,15 @@ class ProductScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(price, style: const TextStyle(color: Colors.blue, fontSize: 12)),
-                    const Icon(Icons.add_shopping_cart, size: 16, color: Colors.blue),
+                    IconButton(
+                      icon: const Icon(Icons.add_shopping_cart, size: 16, color: Colors.blue),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CartScreen()),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ],
