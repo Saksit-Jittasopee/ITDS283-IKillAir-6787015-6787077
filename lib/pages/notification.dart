@@ -31,9 +31,9 @@ class NotificationScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
                   _buildSectionHeader('TODAY'),
-                  _buildNotiItem(Icons.card_membership, 'A Netflix payout of \$19 has been successful!', '11.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(Icons.add_circle_outline, 'Successfully top up balance \$150 from US CITIBAN. See details here.', '08.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(Icons.shopping_bag_outlined, 'Special Sales All products discount up to 40% off', '11.00 AM', Colors.pink[50]!),
+                  _buildNotiItem(Icons.card_membership, 'A products payout of \$19 has been successful!', '11.00 AM', Colors.pink[50]!),
+                  _buildNotiItem(Icons.add_circle_outline, 'Bangkok, Thailand AQI at 90 today.', '08.00 AM', Colors.pink[50]!),
+                  _buildNotiItem(Icons.shopping_bag_outlined, 'New Product "HealthPro 404" Released Today!', '11.00 AM', Colors.pink[50]!),
                   _buildNotiItem(Icons.public, 'Bangkok, Thailand AQI at 92 today.', '08.00 AM', Colors.pink[50]!),
                   _buildNotiItem(Icons.newspaper, 'Today PM2.5 News! Readmore at https:...', '01.00 AM', Colors.yellow[50]!),
                   const SizedBox(height: 20),
