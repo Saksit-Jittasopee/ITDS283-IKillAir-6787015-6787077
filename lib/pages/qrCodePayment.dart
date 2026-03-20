@@ -64,7 +64,7 @@ class PromptpayScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              Image.network('', width: 250, height: 250),
+              Image.network('', width: 250, height: 250), //QR Code
               const SizedBox(height: 30),
               const Text('IKillAir Inc.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),

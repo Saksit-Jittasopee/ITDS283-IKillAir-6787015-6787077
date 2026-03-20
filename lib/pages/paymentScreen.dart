@@ -116,14 +116,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(left: 45, bottom: 10),
-                      child: Row(
-                        children: [
-                          _buildLogo(''),
-                          _buildLogo(''),
-                          _buildLogo(''),
-                          _buildLogo(''),
-                        ],
-                      ),
                     ),
                     Row(
                       children: [
@@ -142,7 +134,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(left: 45, bottom: 20),
-                      child: _buildLogo(''),
                     ),
                     SizedBox(
                       width: double.infinity,

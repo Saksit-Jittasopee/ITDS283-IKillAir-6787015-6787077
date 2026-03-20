@@ -45,7 +45,7 @@ class CardPaymentScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                          backgroundImage: NetworkImage(''),
                         ),
                       ),
                     ],
@@ -98,15 +98,6 @@ class CardPaymentScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        _buildLogo(''),
-                        _buildLogo(''),
-                        _buildLogo(''),
-                        _buildLogo(''),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       height: 50,

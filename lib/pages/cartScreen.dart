@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/pages/paymentScreen.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -21,6 +22,21 @@ class CartScreen extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.arrow_back_ios, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 15),
+                      const Text(
+                        'Cart',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -39,18 +55,9 @@ class CartScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(''),
+                          backgroundColor: Colors.blueAccent,
+                          child: Icon(Icons.person, color: Colors.white),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.notifications_none, size: 28),
-                      const SizedBox(width: 15),
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(''),
                       ),
                     ],
                   ),
@@ -65,8 +72,6 @@ class CartScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Image.network('', width: 80, height: 80),
-                    const SizedBox(width: 20),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +112,12 @@ class CartScreen extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                        );
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.blue,
                     side: const BorderSide(color: Colors.blue),
