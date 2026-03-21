@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
+import 'package:ikillair/pages/newsScreen.dart'; // อย่าลืม import หน้านี้
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -56,9 +57,17 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('News', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
-                  Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                children: [
+                  const Text('News', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NewsScreen()),
+                      );
+                    },
+                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                  ),
                 ],
               ),
               const SizedBox(height: 15),
