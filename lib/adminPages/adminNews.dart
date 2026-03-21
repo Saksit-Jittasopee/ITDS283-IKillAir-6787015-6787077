@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class NewsScreen extends StatelessWidget {
-  const NewsScreen({super.key});
+class AdminNews extends StatelessWidget {
+  const AdminNews({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class NewsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('News', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const Text('News Management', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   Row(
                     children: [
                       IconButton(
@@ -39,7 +39,7 @@ class NewsScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                          backgroundImage: NetworkImage(''),
                         ),
                       ),
                     ],
@@ -49,29 +49,16 @@ class NewsScreen extends StatelessWidget {
               const SizedBox(height: 20),
               const Text('Latest News', style: TextStyle(fontSize: 20, color: Colors.indigo)),
               const SizedBox(height: 20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: Image.network('/assets/images/news/pm2.5.webp', fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 15),
-              const Text(
+              _buildNewsItem(
+                '',
                 'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                '1 Hour Ago',
               ),
-              const SizedBox(height: 10),
-              const Text(
-                'https://www.bbc.com/thai/articles/ckkl7r05z34o',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                '1 Hour Ago - BBC Thailand',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 30),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: Image.network('/assets/images/news/reduce_energy.jpg', fit: BoxFit.cover),
+              const SizedBox(height: 20),
+              _buildNewsItem(
+                '',
+                'รัฐบาลสั่งเข้มลดการใช้พลังงาน',
+                '2 Hours Ago',
               ),
             ],
           ),

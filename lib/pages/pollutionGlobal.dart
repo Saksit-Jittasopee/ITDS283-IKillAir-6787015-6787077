@@ -66,7 +66,7 @@ class _PollutionGlobalState extends State<PollutionGlobal> {
                             },
                             child: const CircleAvatar(
                               radius: 22,
-                              backgroundImage: NetworkImage(''),
+                              backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                             ),
                           ),
                         ],

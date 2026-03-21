@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/homeScreen.dart';
+import 'package:ikillair/pages/loginUser.dart';
+import 'package:ikillair/pages/team.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -38,8 +41,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Stack(
                   children: [
                     const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage(''),
+                      radius: 20,
+                      backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                     ),
                     Positioned(
                       bottom: 0,
@@ -60,7 +63,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildFieldLabel('Location'),
               _buildTextField('Bangkok, Thailand', true),
               const SizedBox(height: 25),
-              _buildSwitchRow('Notification', _notification, Colors.red, (val) => setState(() => _notification = val)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: _buildSwitchRow('Notification', _notification, Colors.red, (val) => setState(() => _notification = val)),
+                  ),
+                  GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const OurTeamScreen()),
+                    );
+                  },
+                  child: Text(
+                    "Our Team",
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                  ),
+                )
+                ],
+              ),
               const SizedBox(height: 15),
               _buildSwitchRow('Theme', _theme, Colors.black, (val) => setState(() => _theme = val)),
               const SizedBox(height: 40),
@@ -68,7 +90,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -82,7 +109,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,

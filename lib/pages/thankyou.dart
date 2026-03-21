@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/homeScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -38,7 +39,7 @@ class ThankYouScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(''),
+                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                         ),
                       ),
                     ],
@@ -64,7 +65,10 @@ class ThankYouScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        );
                   },
                   child: const Text('Back to Home Page', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),

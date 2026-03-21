@@ -3,8 +3,8 @@ import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class ProductScreen extends StatelessWidget {
-  const ProductScreen({super.key});
+class AdminUser extends StatelessWidget {
+  const AdminUser ({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class ProductScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                          backgroundImage: NetworkImage(''),
                         ),
                       ),
                     ],
