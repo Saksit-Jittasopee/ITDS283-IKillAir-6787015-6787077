@@ -3,8 +3,8 @@ import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class Adminproduct extends StatelessWidget {
-  const Adminproduct ({super.key});
+class AdminProduct extends StatelessWidget {
+  const AdminProduct ({super.key});
 
   @override
   Widget build(BuildContext context) {
