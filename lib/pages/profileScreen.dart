@@ -41,9 +41,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Stack(
                   children: [
                     const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.blueAccent,
-                      child: Icon(Icons.person, color: Colors.white, size: 50),
+                      radius: 20,
+                      backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                     ),
                     Positioned(
                       bottom: 0,

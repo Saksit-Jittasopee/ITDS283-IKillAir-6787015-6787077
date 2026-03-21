@@ -63,13 +63,23 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                //child: Image.network('https://via.placeholder.com/400x200', fit: BoxFit.cover),
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network('/assets/images/news/pm2.5.webp', fit: BoxFit.cover),
               ),
               const SizedBox(height: 15),
               const Text(
                 'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'https://www.bbc.com/thai/articles/ckkl7r05z34o',
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '1 Hour Ago - BBC Thailand',
+                style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 30),
               const Text(

@@ -56,7 +56,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(''),
+                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                         ),
                       ),
                     ],

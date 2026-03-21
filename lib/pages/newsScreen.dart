@@ -39,7 +39,7 @@ class NewsScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(''),
+                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                         ),
                       ),
                     ],
@@ -49,16 +49,29 @@ class NewsScreen extends StatelessWidget {
               const SizedBox(height: 20),
               const Text('Latest News', style: TextStyle(fontSize: 20, color: Colors.indigo)),
               const SizedBox(height: 20),
-              _buildNewsItem(
-                '',
-                'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
-                '1 Hour Ago',
+              ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network('/assets/images/news/pm2.5.webp', fit: BoxFit.cover),
               ),
-              const SizedBox(height: 20),
-              _buildNewsItem(
-                '',
-                'รัฐบาลสั่งเข้มลดการใช้พลังงาน',
-                '2 Hours Ago',
+              const SizedBox(height: 15),
+              const Text(
+                'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'https://www.bbc.com/thai/articles/ckkl7r05z34o',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '1 Hour Ago - BBC Thailand',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 30),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network('/assets/images/news/reduce_energy.jpg', fit: BoxFit.cover),
               ),
             ],
           ),

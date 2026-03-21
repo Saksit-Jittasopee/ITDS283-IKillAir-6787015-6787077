@@ -50,7 +50,7 @@ class WeatherScreen extends StatelessWidget {
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(''),
+                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                         ),
                       ),
                     ],
@@ -60,7 +60,7 @@ class WeatherScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: Image.network('', fit: BoxFit.cover),
+                child: Image.network('/assets/images/weather/Bangkok.webp', fit: BoxFit.cover),
               ),
               const SizedBox(height: 20),
               Row(

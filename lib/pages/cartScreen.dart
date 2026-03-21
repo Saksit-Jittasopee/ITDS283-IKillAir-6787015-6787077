@@ -48,15 +48,11 @@ class CartScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundColor: Colors.blueAccent,
-                          child: Icon(Icons.person, color: Colors.white),
+                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
                         ),
                       ),
                     ],
