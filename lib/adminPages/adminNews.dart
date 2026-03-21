@@ -17,7 +17,7 @@ class AdminNews extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('News', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const Text('News Management', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   Row(
                     children: [
                       IconButton(

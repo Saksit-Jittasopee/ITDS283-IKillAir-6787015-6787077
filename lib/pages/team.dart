@@ -62,14 +62,14 @@ class OurTeamScreen extends StatelessWidget {
               _buildMemberRow(
                 'Chanasorn Chirapongsaton',
                 '6787015',
-                'assets/images/team/Saksit_AI_Days_1.jpg',
+                'assets/images/team/Chanasorn.jpg',
                 true,
               ),
               const SizedBox(height: 40),
               _buildMemberRow(
                 'Saksit Jittasopee',
                 '6787077',
-                'assets/images/team/Saksit_AI_Days_1.jpg',
+                'assets/images/team/Saksit.jpg',
                 false,
               ),
             ],

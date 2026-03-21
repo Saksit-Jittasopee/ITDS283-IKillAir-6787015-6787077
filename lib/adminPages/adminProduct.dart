@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -21,15 +20,6 @@ class AdminProduct extends StatelessWidget {
                   const Text('Product', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   Row(
                     children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const CartScreen()),
-                          );
-                        },
-                        icon: const Icon(Icons.shopping_cart_outlined, size: 28),
-                      ),
                       IconButton(
                         onPressed: () {
                           Navigator.push(
@@ -137,18 +127,6 @@ class AdminProduct extends StatelessWidget {
                 Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(price, style: const TextStyle(color: Colors.blue, fontSize: 12)),
-                    IconButton(
-                      icon: const Icon(Icons.add_shopping_cart, size: 16, color: Colors.blue),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CartScreen()),
-                        );
-                      },
-                    ),
-                  ],
                 ),
               ],
             ),
