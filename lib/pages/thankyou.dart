@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ikillair/pages/homeScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -65,10 +64,7 @@ class ThankYouScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
-                    Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HomeScreen()),
-                        );
+                    Navigator.popUntil(context, (route) => route.isFirst);
                   },
                   child: const Text('Back to Home Page', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
