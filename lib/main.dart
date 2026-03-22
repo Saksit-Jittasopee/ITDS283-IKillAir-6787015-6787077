@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
 class MainContainer extends StatefulWidget {
   final bool isAdmin;
   
-  const MainContainer({super.key, this.isAdmin = true});
+  const MainContainer({super.key, this.isAdmin = false});
 
   @override
   State<MainContainer> createState() => _MainContainerState();
