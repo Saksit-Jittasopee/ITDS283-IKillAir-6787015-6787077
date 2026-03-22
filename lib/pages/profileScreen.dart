@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ikillair/pages/homeScreen.dart';
 import 'package:ikillair/pages/loginUser.dart';
 import 'package:ikillair/pages/team.dart';
 
@@ -91,10 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    );
+                    Navigator.popUntil(context, (route) => route.isFirst);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
@@ -110,9 +106,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(

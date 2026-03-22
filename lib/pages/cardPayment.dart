@@ -146,11 +146,4 @@ class CardPaymentScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildLogo(String url) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: Image.network(url, width: 40, height: 25, fit: BoxFit.cover),
-    );
-  }
 }

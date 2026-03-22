@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
-import 'package:ikillair/pages/newsScreen.dart'; // อย่าลืม import หน้านี้
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final Function(int) onNavigate;
+
+  const HomeScreen({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +62,7 @@ class HomeScreen extends StatelessWidget {
                   const Text('News', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const NewsScreen()),
-                      );
+                      onNavigate(4);
                     },
                     child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ),
@@ -91,9 +89,20 @@ class HomeScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 30),
-              const Text(
-                'Live most polluted global major city ranking',
-                style: TextStyle(fontSize: 18, color: Colors.indigo),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Live most polluted global major city ranking',
+                    style: TextStyle(fontSize: 18, color: Colors.indigo),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      onNavigate(2);
+                    },
+                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                  ),
+                ],
               ),
               const SizedBox(height: 15),
               Row(

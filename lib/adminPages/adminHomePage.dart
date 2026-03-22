@@ -8,6 +8,7 @@ class AdminHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -17,36 +18,26 @@ class AdminHome extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: const [
-                      Text(
-                        'Hello, Saksit 👋',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  const Text(
+                    'Hello,\nChanasorn👋',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
                   ),
                   Row(
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(''),
+                          backgroundImage: NetworkImage('/assets/images/team/Chanasorn.jpg'),
                         ),
                       ),
                     ],
@@ -57,32 +48,74 @@ class AdminHome extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
-                  Text('News', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  Text('Product Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
                   Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 15),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                //child: Image.network('https://via.placeholder.com/400x200', fit: BoxFit.cover),
+              _buildStatCard(
+                'Products Available',
+                '71 Products',
+                Icons.inventory_2,
+                Colors.orange.shade100,
+                Colors.orange,
               ),
               const SizedBox(height: 15),
-              const Text(
-                'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              _buildStatCard(
+                'Total Product Sales',
+                '89,000 Baht',
+                Icons.show_chart,
+                Colors.green.shade100,
+                Colors.green,
               ),
               const SizedBox(height: 30),
-              const Text(
-                'Live most polluted global major city ranking',
-                style: TextStyle(fontSize: 18, color: Colors.indigo),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('Users Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                ],
               ),
               const SizedBox(height: 15),
-              Row(
-                children: [
-                  _buildPollutionCard('179', 'Lahore, Pakistan', Colors.redAccent),
-                  const SizedBox(width: 15),
-                  _buildPollutionCard('178', 'Kolkata, India', Colors.redAccent),
-                ],
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('Total Users', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                            SizedBox(height: 8),
+                            Text('3', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: Colors.indigo.shade50, shape: BoxShape.circle),
+                          child: Icon(Icons.people, color: Colors.indigo.shade300, size: 30),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: const [
+                        Icon(Icons.trending_up, color: Colors.teal, size: 16),
+                        SizedBox(width: 8),
+                        Text('2 Users currently online', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -91,22 +124,33 @@ class AdminHome extends StatelessWidget {
     );
   }
 
-  Widget _buildPollutionCard(String aqi, String city, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          children: [
-            const Text('AQI', style: TextStyle(color: Colors.white, fontSize: 12)),
-            Text(aqi, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-            Text(city, style: const TextStyle(color: Colors.white, fontSize: 10)),
-            const Text('Status: Poor', style: TextStyle(color: Colors.white70, fontSize: 10)),
-          ],
-        ),
+  Widget _buildStatCard(String title, String value, IconData icon, Color bgColor, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+            child: Icon(icon, color: iconColor, size: 30),
+          ),
+        ],
       ),
     );
   }
