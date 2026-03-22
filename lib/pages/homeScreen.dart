@@ -89,15 +89,20 @@ class HomeScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 30),
-              const Text(
-                'Live most polluted global major city ranking',
-                style: TextStyle(fontSize: 18, color: Colors.indigo),
-              ),
-              GestureDetector(
-                onTap: () {
-                  onNavigate(2);
-                },
-                child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Live most polluted global major city ranking',
+                    style: TextStyle(fontSize: 18, color: Colors.indigo),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      onNavigate(2);
+                    },
+                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                  ),
+                ],
               ),
               const SizedBox(height: 15),
               Row(
