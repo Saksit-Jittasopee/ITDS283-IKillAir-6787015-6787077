@@ -6,6 +6,7 @@ import 'package:ikillair/adminPages/adminProduct.dart';
 import 'package:ikillair/adminPages/adminUser.dart';
 import 'package:ikillair/pages/homeScreen.dart';
 import 'package:ikillair/pages/newsScreen.dart';
+//import 'package:ikillair/pages/pollutionGlobal.dart';
 import 'package:ikillair/pages/pollutionScreen.dart';
 import 'package:ikillair/pages/weatherScreen.dart';
 import 'package:ikillair/pages/productScreen.dart';

@@ -73,6 +73,21 @@ class NewsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
                 child: Image.network('/assets/images/news/reduce_energy.jpg', fit: BoxFit.cover),
               ),
+              const SizedBox(height: 15),
+              const Text(
+                'รัฐบาลออกมาตรการประหยัดพลังงาน พลัส ยกกำลัง 2 ควบคุมราคาสินค้า สั่งผู้ว่าฯ ผ่อนผัน รถส่งน้ำมันวิ่ง 24 ชม.',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'https://www.prd.go.th/th/content/category/detail/id/39/iid/486544',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '4 Hour Ago - กรมประชาสัมพันธ์ PRD',
+                style: TextStyle(fontSize: 14),
+              ),
             ],
           ),
         ),
