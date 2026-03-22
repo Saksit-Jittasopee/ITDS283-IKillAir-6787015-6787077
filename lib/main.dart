@@ -47,7 +47,7 @@ class _MainContainerState extends State<MainContainer> {
     super.initState();
     
     _userPages = [
-      const HomeScreen(),
+      HomeScreen(onNavigate: (index) => setState(() => _selectedIndex = index)),
       const ProductScreen(),
       const PollutionScreen(),
       const WeatherScreen(),

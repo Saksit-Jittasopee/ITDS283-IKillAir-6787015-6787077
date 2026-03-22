@@ -92,21 +92,4 @@ class AdminNews extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildNewsItem(String imageUrl, String title, String time) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: Image.network(imageUrl, fit: BoxFit.cover, width: double.infinity, height: 200),
-        ),
-        const SizedBox(height: 10),
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 5),
-        Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        const Divider(height: 30),
-      ],
-    );
-  }
 }

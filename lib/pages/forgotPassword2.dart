@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ikillair/pages/homeScreen.dart';
 
 class forgotPassword2 extends StatefulWidget {
   const forgotPassword2({super.key});
@@ -113,12 +112,8 @@ class _forgotPassword2State extends State<forgotPassword2> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Processing Data')),
                         );
-                      } else{
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
-                      );
-                      } 
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      }
                     },
                     child: const Text(
                       'CONFIRM',
@@ -140,6 +135,7 @@ class _forgotPassword2State extends State<forgotPassword2> {
   @override
   void dispose() {
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     super.dispose();
   }
 }
