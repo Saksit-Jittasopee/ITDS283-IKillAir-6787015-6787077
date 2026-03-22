@@ -106,9 +106,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(

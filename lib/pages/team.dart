@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
-import 'package:ikillair/pages/profileScreen.dart';
 
 class OurTeamScreen extends StatelessWidget {
   const OurTeamScreen({super.key});
@@ -44,15 +43,12 @@ class OurTeamScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.pop(context);
                         },
                         child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage(''),
-                        ),
+                        radius: 20,
+                        backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                      ),
                       ),
                     ],
                   ),
@@ -79,9 +75,9 @@ class OurTeamScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberRow(String name, String id, String img, bool imgLeft) {
+  Widget _buildMemberRow(String name, String id, String imgPath, bool imgLeft) {
     final info = Column(
-      crossAxisAlignment: imgLeft ? CrossAxisAlignment.start : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Hello I\'m', style: TextStyle(fontSize: 16)),
         Text(name, style: const TextStyle(fontSize: 16)),
@@ -106,7 +102,7 @@ class OurTeamScreen extends StatelessWidget {
         gradient: LinearGradient(colors: [Colors.cyan, Colors.blue]),
       ),
       padding: const EdgeInsets.all(3),
-      child: CircleAvatar(radius: 40, backgroundImage: NetworkImage(img)),
+      child: CircleAvatar(radius: 40, backgroundImage: AssetImage(imgPath)),
     );
 
     return Row(
