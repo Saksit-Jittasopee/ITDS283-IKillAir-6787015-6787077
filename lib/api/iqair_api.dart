@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class IqAirApi {
   static final String _apiKey = dotenv.env['AIR_VISUAL_API_KEY']!;
 
-  static Future<Map<String, dynamic>?> fetchBangkokAqi() async {
+  static Future<Map<String, dynamic>?> fetchCityAqi() async {
     const List<String> city = ['bangkok', 'shanghai', 'tokyo', 'losangeles', 'newyork'];
     const List<String> state = ['bangkok', 'shanghai', 'tokyo', 'california', 'newyork'];
     const List<String> country = ['us', 'uk', 'thailand', 'japan', 'china'];

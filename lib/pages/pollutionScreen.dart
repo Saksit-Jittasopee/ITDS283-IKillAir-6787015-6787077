@@ -24,7 +24,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
   }
 
   Future<void> _loadAqiData() async {
-    final data = await IqAirApi.fetchBangkokAqi();
+    final data = await IqAirApi.fetchCityAqi();
     
     if (mounted) {
       setState(() {
