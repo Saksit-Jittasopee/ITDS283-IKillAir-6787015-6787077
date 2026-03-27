@@ -9,8 +9,11 @@ import 'package:ikillair/pages/newsScreen.dart';
 import 'package:ikillair/pages/pollutionScreen.dart';
 import 'package:ikillair/pages/weatherScreen.dart';
 import 'package:ikillair/pages/productScreen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Required by Flutter framework
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class IqAirApi {
-  static const String _apiKey = "YOUR_API_KEY";
+  static final String _apiKey = dotenv.env['AIR_VISUAL_API_KEY']!;
 
   static Future<Map<String, dynamic>?> fetchBangkokAqi() async {
     const List<String> city = ['bangkok', 'shanghai', 'tokyo', 'losangeles', 'newyork'];
