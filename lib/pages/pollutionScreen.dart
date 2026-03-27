@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
+import 'package:ikillair/api/iqair_api.dart';
 
 class PollutionScreen extends StatefulWidget {
   const PollutionScreen({super.key});
@@ -11,6 +12,45 @@ class PollutionScreen extends StatefulWidget {
 
 class _PollutionScreenState extends State<PollutionScreen> {
   bool isMyCountry = true;
+  bool isLoading = true;
+  String currentAqi = "--";
+  String aqiStatus = "Loading";
+  Color aqiColor = Colors.amber;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAqiData();
+  }
+
+  Future<void> _loadAqiData() async {
+    final data = await IqAirApi.fetchCityAqi();
+    
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+        if (data != null && data['current'] != null && data['current']['pollution'] != null) {
+          int aqi = data['current']['pollution']['aqius'];
+          currentAqi = aqi.toString();
+          
+          if (aqi <= 50) {
+            aqiStatus = "Clean";
+            aqiColor = Colors.green;
+          } else if (aqi <= 100) {
+            aqiStatus = "Moderate";
+            aqiColor = Colors.amber;
+          } else {
+            aqiStatus = "Poor";
+            aqiColor = Colors.redAccent;
+          }
+        } else {
+          currentAqi = "N/A";
+          aqiStatus = "Error";
+          aqiColor = Colors.grey;
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,17 +170,19 @@ class _PollutionScreenState extends State<PollutionScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: Colors.amber,
+              color: aqiColor,
               borderRadius: BorderRadius.circular(25),
             ),
-            child: Column(
-              children: const [
-                Text('AQI', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('92', style: TextStyle(fontSize: 70, fontWeight: FontWeight.bold)),
-                Text('Bangkok, Thailand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('Status: Clean', style: TextStyle(color: Colors.black54)),
-              ],
-            ),
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                : Column(
+                    children: [
+                      const Text('AQI', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                      Text(currentAqi, style: const TextStyle(fontSize: 70, fontWeight: FontWeight.bold, color: Colors.black)),
+                      const Text('Bangkok, Thailand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      Text('Status: $aqiStatus', style: const TextStyle(color: Colors.black54)),
+                    ],
+                  ),
           ),
           const SizedBox(height: 30),
           GridView.count(
