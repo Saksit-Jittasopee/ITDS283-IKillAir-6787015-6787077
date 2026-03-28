@@ -22,7 +22,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
   String locationName = "Locating...";
   String coLevel = "--";
   String no2Level = "--";
-  String nh3Level = "--";
+  String o3Level = "--";
   String so2Level = "--";
 
   List<dynamic> globalRankings = [];
@@ -81,7 +81,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
             coLevel = iaqi['co'] != null ? iaqi['co']['v'].toString() : "--";
             no2Level = iaqi['no2'] != null ? iaqi['no2']['v'].toString() : "--";
             so2Level = iaqi['so2'] != null ? iaqi['so2']['v'].toString() : "--";
-            nh3Level = "--"; 
+            o3Level = iaqi['o3'] != null ? iaqi['o3']['v'].toString() : "--";
           }
 
           aqiColor = _getAqiColor(aqi);
@@ -292,7 +292,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
             children: [
               _buildSensorCard('CO Level', coLevel, 'PPM'),
               _buildSensorCard('NO2 Level', no2Level, 'PPM'),
-              _buildSensorCard('NH3 Level', nh3Level, 'PPM'),
+              _buildSensorCard('O3 Level', o3Level, 'PPM'),
               _buildSensorCard('SO2 Level', so2Level, 'PPM'),
             ],
           ),
