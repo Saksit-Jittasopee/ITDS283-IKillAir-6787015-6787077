@@ -5,19 +5,25 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class IqAirApi {
   static final String _apiKey = dotenv.env['AIR_VISUAL_API_KEY']!;
 
-  static Future<Map<String, dynamic>?> fetchCityAqi() async {
-    const List<String> city = ['bangkok', 'shanghai', 'tokyo', 'losangeles', 'newyork'];
-    const List<String> state = ['bangkok', 'shanghai', 'tokyo', 'california', 'newyork'];
-    const List<String> country = ['us', 'uk', 'thailand', 'japan', 'china'];
-    
-    String url = "http://api.airvisual.com/v2/city?city=$city&state=$state&country=$country&key=$_apiKey";
+  static Future<List<dynamic>?> fetchGlobalRanking() async {
+    String url = "https://api.airvisual.com/v2/city_ranking?key=$_apiKey";
 
     try {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        return jsonData['data'];
+        if (jsonData['status'] == 'success') {
+          List<dynamic> dataList = jsonData['data'];
+          
+          dataList.sort((a, b) {
+            int aqiA = a['ranking']?['current_aqi'] ?? 0;
+            int aqiB = b['ranking']?['current_aqi'] ?? 0;
+            return aqiB.compareTo(aqiA);
+          });
+
+          return dataList;
+        }
       }
       return null;
     } catch (e) {
