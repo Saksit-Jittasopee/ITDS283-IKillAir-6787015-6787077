@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 import 'package:ikillair/api/waqi_api.dart';
+import 'package:ikillair/api/iqair_api.dart';
 
 class PollutionScreen extends StatefulWidget {
   const PollutionScreen({super.key});
@@ -24,10 +25,14 @@ class _PollutionScreenState extends State<PollutionScreen> {
   String nh3Level = "--";
   String so2Level = "--";
 
+  List<dynamic> globalRankings = [];
+  bool isGlobalLoading = true;
+
   @override
   void initState() {
     super.initState();
     _determinePositionAndFetchData();
+    _fetchGlobalData();
   }
 
   Future<void> _determinePositionAndFetchData() async {
@@ -79,30 +84,46 @@ class _PollutionScreenState extends State<PollutionScreen> {
             nh3Level = "--"; 
           }
 
+          aqiColor = _getAqiColor(aqi);
           if (aqi <= 50) {
             aqiStatus = "Clean";
-            aqiColor = Colors.green;
           } else if (aqi <= 100) {
             aqiStatus = "Moderate";
-            aqiColor = Colors.amber;
           } else if (aqi <= 150) {
             aqiStatus = "Unhealthy for Sensitive Groups";
-            aqiColor = Colors.orange;
           } else if (aqi <= 200) {
             aqiStatus = "Unhealthy";
-            aqiColor = Colors.redAccent;
           } else if (aqi <= 300) {
             aqiStatus = "Very Unhealthy";
-            aqiColor = Colors.purple;
           } else {
             aqiStatus = "Hazardous";
-            aqiColor = Colors.brown;
           }
         } else {
           _setErrorState("Data Not Found");
         }
       });
     }
+  }
+
+  Future<void> _fetchGlobalData() async {
+    final data = await IqAirApi.fetchGlobalRanking();
+    if (mounted) {
+      setState(() {
+        if (data != null) {
+          globalRankings = data;
+        }
+        isGlobalLoading = false;
+      });
+    }
+  }
+
+  Color _getAqiColor(int aqi) {
+    if (aqi <= 50) return Colors.green;
+    if (aqi <= 100) return Colors.amber;
+    if (aqi <= 150) return Colors.orange;
+    if (aqi <= 200) return Colors.redAccent;
+    if (aqi <= 300) return Colors.purple;
+    return const Color(0xFF7A1B14);
   }
 
   void _setErrorState(String message) {
@@ -325,21 +346,25 @@ class _PollutionScreenState extends State<PollutionScreen> {
             ],
           ),
         ),
-        ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          children: [
-            _buildRankingRow('1', 'Lahore, Pakistan', '355', const Color(0xFF7A1B14)),
-            _buildRankingRow('2', 'New Delhi, India', '184', const Color(0xFFFF2D2D)),
-            _buildRankingRow('3', 'Kolkata, India', '182', const Color(0xFFFF2D2D)),
-            _buildRankingRow('4', 'Manama, Bahrain', '177', const Color(0xFFFF2D2D)),
-            _buildRankingRow('5', 'Seoul, South Korea', '173', const Color(0xFFFF2D2D)),
-            _buildRankingRow('6', 'Baghdad, Iraq', '172', const Color(0xFFFF2D2D)),
-            _buildRankingRow('7', 'Dhaka, Bangladesh', '171', const Color(0xFFFF2D2D)),
-            _buildRankingRow('8', 'Yangon, Myanmar', '164', const Color(0xFFFF2D2D)),
-          ],
-        ),
+        isGlobalLoading
+            ? const Padding(
+                padding: EdgeInsets.all(40.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: globalRankings.length,
+                itemBuilder: (context, index) {
+                  final cityData = globalRankings[index];
+                  final cityName = cityData['city'] ?? 'Unknown';
+                  final countryName = cityData['country'] ?? 'Unknown';
+                  final aqi = cityData['ranking']['current_aqi'] ?? 0;
+                  
+                  return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
+                },
+              ),
         const SizedBox(height: 30),
       ],
     );
