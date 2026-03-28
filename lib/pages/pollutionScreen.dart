@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
-import 'package:ikillair/api/iqair_api.dart';
+import 'package:ikillair/api/waqi_api.dart';
 
 class PollutionScreen extends StatefulWidget {
   const PollutionScreen({super.key});
@@ -16,38 +17,102 @@ class _PollutionScreenState extends State<PollutionScreen> {
   String currentAqi = "--";
   String aqiStatus = "Loading";
   Color aqiColor = Colors.amber;
+  
+  String locationName = "Locating...";
+  String coLevel = "--";
+  String no2Level = "--";
+  String nh3Level = "--";
+  String so2Level = "--";
 
   @override
   void initState() {
     super.initState();
-    _loadAqiData();
+    _determinePositionAndFetchData();
   }
 
-  Future<void> _loadAqiData() async {
-    final data = await IqAirApi.fetchCityAqi();
+  Future<void> _determinePositionAndFetchData() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _setErrorState("Location Disabled");
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _setErrorState("Permission Denied");
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _setErrorState("Permission Denied Forever");
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    
+    final data = await WAQIapi.fetchAqiByLocation(position.latitude, position.longitude);
     
     if (mounted) {
       setState(() {
         isLoading = false;
-        if (data != null && data['current'] != null && data['current']['pollution'] != null) {
-          int aqi = data['current']['pollution']['aqius'];
+        if (data != null) {
+          int aqi = data['aqi'] ?? 0;
           currentAqi = aqi.toString();
           
+          if (data['city'] != null && data['city']['name'] != null) {
+            locationName = data['city']['name'];
+          } else {
+            locationName = "Unknown Location";
+          }
+
+          if (data['iaqi'] != null) {
+            var iaqi = data['iaqi'];
+            coLevel = iaqi['co'] != null ? iaqi['co']['v'].toString() : "--";
+            no2Level = iaqi['no2'] != null ? iaqi['no2']['v'].toString() : "--";
+            so2Level = iaqi['so2'] != null ? iaqi['so2']['v'].toString() : "--";
+            nh3Level = "--"; 
+          }
+
           if (aqi <= 50) {
             aqiStatus = "Clean";
             aqiColor = Colors.green;
           } else if (aqi <= 100) {
             aqiStatus = "Moderate";
             aqiColor = Colors.amber;
-          } else {
-            aqiStatus = "Poor";
+          } else if (aqi <= 150) {
+            aqiStatus = "Unhealthy for Sensitive Groups";
+            aqiColor = Colors.orange;
+          } else if (aqi <= 200) {
+            aqiStatus = "Unhealthy";
             aqiColor = Colors.redAccent;
+          } else if (aqi <= 300) {
+            aqiStatus = "Very Unhealthy";
+            aqiColor = Colors.purple;
+          } else {
+            aqiStatus = "Hazardous";
+            aqiColor = Colors.brown;
           }
         } else {
-          currentAqi = "N/A";
-          aqiStatus = "Error";
-          aqiColor = Colors.grey;
+          _setErrorState("Data Not Found");
         }
+      });
+    }
+  }
+
+  void _setErrorState(String message) {
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+        currentAqi = "N/A";
+        aqiStatus = message;
+        aqiColor = Colors.grey;
+        locationName = "Location Error";
       });
     }
   }
@@ -67,17 +132,25 @@ class _PollutionScreenState extends State<PollutionScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Pollution', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                            Row(
-                              children: const [
-                                Icon(Icons.location_on, color: Colors.blue, size: 16),
-                                Text(' Bangkok, Thailand', style: TextStyle(color: Colors.grey)),
-                              ],
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Pollution', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on, color: Colors.blue, size: 16),
+                                  Expanded(
+                                    child: Text(
+                                      ' $locationName', 
+                                      style: const TextStyle(color: Colors.grey),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                         Row(
                           children: [
@@ -112,7 +185,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                       children: [
                         GestureDetector(
                           onTap: () => setState(() => isMyCountry = true),
-                          child: _buildTab('My Country', isMyCountry),
+                          child: _buildTab('My Location', isMyCountry),
                         ),
                         GestureDetector(
                           onTap: () => setState(() => isMyCountry = false),
@@ -127,7 +200,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                           ),
                           child: Row(
                             children: const [
-                              Text('22/2/2026 '),
+                              Text('Today '),
                               Icon(Icons.arrow_drop_down),
                             ],
                           ),
@@ -179,7 +252,11 @@ class _PollutionScreenState extends State<PollutionScreen> {
                     children: [
                       const Text('AQI', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
                       Text(currentAqi, style: const TextStyle(fontSize: 70, fontWeight: FontWeight.bold, color: Colors.black)),
-                      const Text('Bangkok, Thailand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      Text(
+                        locationName, 
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                        textAlign: TextAlign.center,
+                      ),
                       Text('Status: $aqiStatus', style: const TextStyle(color: Colors.black54)),
                     ],
                   ),
@@ -192,10 +269,10 @@ class _PollutionScreenState extends State<PollutionScreen> {
             crossAxisSpacing: 15,
             mainAxisSpacing: 15,
             children: [
-              _buildSensorCard('CO2 Level', '130', 'PPM'),
-              _buildSensorCard('NO2 Level', '120', 'PPM'),
-              _buildSensorCard('NH3 Level', '12', 'PPM'),
-              _buildSensorCard('SO2 Level', '120', 'PPM'),
+              _buildSensorCard('CO Level', coLevel, 'PPM'),
+              _buildSensorCard('NO2 Level', no2Level, 'PPM'),
+              _buildSensorCard('NH3 Level', nh3Level, 'PPM'),
+              _buildSensorCard('SO2 Level', so2Level, 'PPM'),
             ],
           ),
           const SizedBox(height: 30),
