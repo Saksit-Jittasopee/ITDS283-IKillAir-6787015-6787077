@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:ikillair/api/waqi_api.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
-import 'package:ikillair/api/waqi_api.dart';
 import 'package:ikillair/api/iqair_api.dart';
 
 class PollutionScreen extends StatefulWidget {
@@ -351,20 +351,25 @@ class _PollutionScreenState extends State<PollutionScreen> {
                 padding: EdgeInsets.all(40.0),
                 child: Center(child: CircularProgressIndicator()),
               )
-            : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: globalRankings.length,
-                itemBuilder: (context, index) {
-                  final cityData = globalRankings[index];
-                  final cityName = cityData['city'] ?? 'Unknown';
-                  final countryName = cityData['country'] ?? 'Unknown';
-                  final aqi = cityData['ranking']['current_aqi'] ?? 0;
-                  
-                  return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
-                },
-              ),
+            : globalRankings.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: Text('No data available', style: TextStyle(color: Colors.grey)),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: globalRankings.length,
+                    itemBuilder: (context, index) {
+                      final cityData = globalRankings[index];
+                      final cityName = cityData['city'] ?? 'Unknown';
+                      final countryName = cityData['country'] ?? 'Unknown';
+                      final aqi = cityData['ranking']?['current_aqi'] ?? 0;
+                      
+                      return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
+                    },
+                  ),
         const SizedBox(height: 30),
       ],
     );
