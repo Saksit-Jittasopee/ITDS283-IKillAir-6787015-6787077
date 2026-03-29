@@ -110,6 +110,12 @@ class _PollutionScreenState extends State<PollutionScreen> {
       setState(() {
         if (data != null) {
           globalRankings = data;
+          
+          globalRankings.sort((a, b) {
+            int aqiA = a['aqi'] ?? 0;
+            int aqiB = b['aqi'] ?? 0;
+            return aqiB.compareTo(aqiA);
+          });
         }
         isGlobalLoading = false;
       });
