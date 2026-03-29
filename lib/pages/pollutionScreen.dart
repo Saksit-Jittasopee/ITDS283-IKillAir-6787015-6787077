@@ -71,7 +71,15 @@ class _PollutionScreenState extends State<PollutionScreen> {
           currentAqi = aqi.toString();
           
           if (data['city'] != null && data['city']['name'] != null) {
-            locationName = data['city']['name'];
+            String rawName = data['city']['name'];
+            List<String> parts = rawName.split(',');
+            if (parts.length >= 2) {
+              String country = parts.last.trim();
+              String province = parts[parts.length - 2].trim();
+              locationName = "$province, $country";
+            } else {
+              locationName = rawName;
+            }
           } else {
             locationName = "Unknown Location";
           }

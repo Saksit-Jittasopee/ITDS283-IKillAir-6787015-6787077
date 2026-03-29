@@ -74,9 +74,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
       setState(() {
         isLoading = false;
         if (data != null) {
-          final city = data['city'] ?? "Unknown";
+          final state = data['state'] ?? data['city'] ?? "Unknown";
           final country = data['country'] ?? "";
-          locationName = "$city, $country";
+          locationName = country.isNotEmpty ? "$state, $country" : state;
 
           if (data['current'] != null && data['current']['weather'] != null) {
             final weather = data['current']['weather'];
