@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ikillair/api/waqi_api.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
+import 'package:ikillair/api/iqair_api.dart';
 
 class PollutionScreen extends StatefulWidget {
   const PollutionScreen({super.key});
@@ -26,7 +27,6 @@ class _PollutionScreenState extends State<PollutionScreen> {
 
   List<dynamic> globalRankings = [];
   bool isGlobalLoading = true;
-  bool isDescending = true;
 
   @override
   void initState() {
@@ -71,15 +71,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
           currentAqi = aqi.toString();
           
           if (data['city'] != null && data['city']['name'] != null) {
-            String rawName = data['city']['name'];
-            List<String> parts = rawName.split(',');
-            if (parts.length >= 2) {
-              String country = parts.last.trim();
-              String province = parts[parts.length - 2].trim();
-              locationName = "$province, $country";
-            } else {
-              locationName = rawName;
-            }
+            locationName = data['city']['name'];
           } else {
             locationName = "Unknown Location";
           }
@@ -114,35 +106,15 @@ class _PollutionScreenState extends State<PollutionScreen> {
   }
 
   Future<void> _fetchGlobalData() async {
-    final data = await WAQIapi.fetchGlobalRanking();
+    final data = await IqAirApi.fetchGlobalRanking();
     if (mounted) {
       setState(() {
         if (data != null) {
           globalRankings = data;
-          _sortGlobalRankings();
         }
         isGlobalLoading = false;
       });
     }
-  }
-
-  void _sortGlobalRankings() {
-    globalRankings.sort((a, b) {
-      int aqiA = a['aqi'] ?? 0;
-      int aqiB = b['aqi'] ?? 0;
-      if (isDescending) {
-        return aqiB.compareTo(aqiA);
-      } else {
-        return aqiA.compareTo(aqiB);
-      }
-    });
-  }
-
-  void _toggleSortOrder() {
-    setState(() {
-      isDescending = !isDescending;
-      _sortGlobalRankings();
-    });
   }
 
   Color _getAqiColor(int aqi) {
@@ -367,26 +339,10 @@ class _PollutionScreenState extends State<PollutionScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           color: const Color(0xFF007BFF),
           child: Row(
-            children: [
-              Expanded(
-                flex: 1, 
-                child: GestureDetector(
-                  onTap: _toggleSortOrder,
-                  child: Row(
-                    children: [
-                      const Text('Rank', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                      const SizedBox(width: 4),
-                      Icon(
-                        isDescending ? Icons.arrow_upward : Icons.arrow_downward,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Expanded(flex: 3, child: Text('Major Countries\n/Cities', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
-              const Expanded(flex: 1, child: Text('US AQI', textAlign: TextAlign.right, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
+            children: const [
+              Expanded(flex: 1, child: Text('Rank   ↑', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
+              Expanded(flex: 3, child: Text('Major Countries\n/Cities', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
+              Expanded(flex: 1, child: Text('US AQI', textAlign: TextAlign.right, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
             ],
           ),
         ),
@@ -409,7 +365,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                       final cityData = globalRankings[index];
                       final cityName = cityData['city'] ?? 'Unknown';
                       final countryName = cityData['country'] ?? 'Unknown';
-                      final aqi = cityData['aqi'] ?? 0;
+                      final aqi = cityData['ranking']?['current_aqi'] ?? 0;
                       
                       return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
                     },
