@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class IqAirApi {
+class IqAirApi { //Weather API
   static final String _apiKey = dotenv.env['AIR_VISUAL_API_KEY'] ?? '';
 
   static Future<Map<String, dynamic>?> fetchWeatherByLocation(double lat, double lon) async {

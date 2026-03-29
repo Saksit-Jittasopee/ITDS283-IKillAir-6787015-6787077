@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class WAQIapi {
-  static final String _apiKey = dotenv.env['APICN_API_KEY'] ?? '';
+  static final String _apiKey = dotenv.env['WAQI_API_KEY'] ?? '';
 
   static Future<Map<String, dynamic>?> fetchAqiByLocation(double lat, double lon) async {
     String url = "https://api.waqi.info/feed/geo:$lat;$lon/?token=$_apiKey";
@@ -43,7 +43,7 @@ class WAQIapi {
         }
         return null;
       } catch (e) {
-        return null;
+          return null;
       }
     }).toList();
 
