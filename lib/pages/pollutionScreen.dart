@@ -3,7 +3,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ikillair/api/waqi_api.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
-import 'package:ikillair/api/iqair_api.dart';
 
 class PollutionScreen extends StatefulWidget {
   const PollutionScreen({super.key});
@@ -106,7 +105,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
   }
 
   Future<void> _fetchGlobalData() async {
-    final data = await IqAirApi.fetchGlobalRanking();
+    final data = await WAQIapi.fetchGlobalRanking();
     if (mounted) {
       setState(() {
         if (data != null) {
@@ -365,7 +364,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                       final cityData = globalRankings[index];
                       final cityName = cityData['city'] ?? 'Unknown';
                       final countryName = cityData['country'] ?? 'Unknown';
-                      final aqi = cityData['ranking']?['current_aqi'] ?? 0;
+                      final aqi = cityData['aqi'] ?? 0;
                       
                       return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
                     },
