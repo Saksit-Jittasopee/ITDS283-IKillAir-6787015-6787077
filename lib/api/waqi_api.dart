@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class WAQIapi { //use for pollution info (CO2, NO2, NH3, SO2, AQI)
+class WAQIapi { //use for pollution info (CO2, NO2, O3, SO2, AQI)
   static final String _apiKey = dotenv.env['APICN_API_KEY'] ?? 'YOUR_API_KEY';
 
   static Future<Map<String, dynamic>?> fetchAqiByLocation(double lat, double lon) async {

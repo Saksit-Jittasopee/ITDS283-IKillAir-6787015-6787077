@@ -30,4 +30,22 @@ class IqAirApi {
       return null;
     }
   }
+
+  static Future<Map<String, dynamic>?> fetchWeatherByLocation(double lat, double lon) async {
+    String url = "https://api.airvisual.com/v2/nearest_city?lat=$lat&lon=$lon&key=$_apiKey";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        if (jsonData['status'] == 'success') {
+          return jsonData['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }
