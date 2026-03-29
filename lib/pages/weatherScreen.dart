@@ -18,9 +18,11 @@ class _WeatherScreenState extends State<WeatherScreen> {
   String windSpeed = "--";
   String humidity = "--";
   String weatherCondition = "Loading";
+  IconData weatherIcon = Icons.wb_sunny_outlined;
   
   String currentDate = "";
   String currentTime = "";
+  List<Map<String, dynamic>> hourlyForecast = [];
 
   @override
   void initState() {
@@ -78,8 +80,10 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
           if (data['current'] != null && data['current']['weather'] != null) {
             final weather = data['current']['weather'];
-            temperature = weather['tp'] != null ? weather['tp'].toString() : "--";
-            humidity = weather['hu'] != null ? '${weather['hu']}%' : "--";
+            int temp = weather['tp'] ?? 0;
+            temperature = temp.toString();
+            int humid = weather['hu'] ?? 0;
+            humidity = '$humid%';
             
             if (weather['ws'] != null) {
               double wsMs = (weather['ws'] as num).toDouble();
@@ -87,13 +91,47 @@ class _WeatherScreenState extends State<WeatherScreen> {
               windSpeed = '${wsKmh.toStringAsFixed(1)} km/h';
             }
 
-            weatherCondition = "Updated";
+            weatherIcon = _getWeatherIcon(temp, humid);
+            weatherCondition = _getWeatherStatus(temp, humid);
+            _generateMockHourlyForecast(temp);
           }
         } else {
           _setErrorState("Data Not Found");
         }
       });
     }
+  }
+
+  void _generateMockHourlyForecast(int currentTemp) {
+    final now = DateTime.now();
+    hourlyForecast = [];
+    
+    for (int i = 0; i < 5; i++) {
+      final forecastTime = now.add(Duration(hours: i));
+      final timeStr = i == 0 ? 'Now' : '${forecastTime.hour.toString().padLeft(2, '0')}:00';
+      
+      int mockTemp = currentTemp + (i * (i % 2 == 0 ? 1 : -1));
+      int mockHumid = 70 + (i * 2); 
+      
+      hourlyForecast.add({
+        'time': timeStr,
+        'temp': '$mockTemp°',
+        'icon': _getWeatherIcon(mockTemp, mockHumid),
+        'isNow': i == 0,
+      });
+    }
+  }
+
+  IconData _getWeatherIcon(int temp, int humid) {
+    if (humid > 80) return Icons.umbrella_outlined;
+    if (temp < 25) return Icons.cloud_outlined;
+    return Icons.wb_sunny_outlined;
+  }
+
+  String _getWeatherStatus(int temp, int humid) {
+    if (humid > 80) return "Rainy";
+    if (temp < 25) return "Cloudy";
+    return "Clear";
   }
 
   void _setErrorState(String message) {
@@ -105,6 +143,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
         windSpeed = "--";
         humidity = "--";
         weatherCondition = "Error";
+        weatherIcon = Icons.error_outline;
+        hourlyForecast = [];
       });
     }
   }
@@ -112,6 +152,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -189,7 +230,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                             const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
                             Text(currentDate, style: const TextStyle(color: Colors.grey)),
                             const SizedBox(height: 10),
-                            _weatherDetail(Icons.nightlight_round, weatherCondition),
+                            _weatherDetail(weatherIcon, weatherCondition),
                             _weatherDetail(Icons.air, windSpeed),
                             _weatherDetail(Icons.water_drop_outlined, humidity),
                           ],
@@ -204,16 +245,18 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       ],
                     ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _hourlyCard('Now', Icons.nightlight_round, '$temperature°', true),
-                  _hourlyCard('00:00', Icons.umbrella_outlined, '25°', false),
-                  _hourlyCard('05:00', Icons.cloud_outlined, '27°', false),
-                  _hourlyCard('10:00', Icons.wb_sunny_outlined, '33°', false),
-                  _hourlyCard('15:00', Icons.wb_sunny_outlined, '34°', false),
-                ],
-              )
+              if (hourlyForecast.isNotEmpty)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: hourlyForecast.map((forecast) {
+                    return _hourlyCard(
+                      forecast['time'], 
+                      forecast['icon'], 
+                      forecast['temp'], 
+                      forecast['isNow']
+                    );
+                  }).toList(),
+                )
             ],
           ),
         ),
