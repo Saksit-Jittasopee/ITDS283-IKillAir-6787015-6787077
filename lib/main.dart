@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/adminPages/adminHomePage.dart';
 import 'package:ikillair/adminPages/adminNews.dart';
@@ -9,11 +10,11 @@ import 'package:ikillair/pages/newsScreen.dart';
 import 'package:ikillair/pages/pollutionScreen.dart';
 import 'package:ikillair/pages/weatherScreen.dart';
 import 'package:ikillair/pages/productScreen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Required by Flutter framework
-  await dotenv.load(fileName: ".env");
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+final ValueNotifier<dynamic> profileImageNotifier = ValueNotifier<dynamic>('/assets/images/team/Saksit.jpg');
+
+void main() {
   runApp(const MyApp());
 }
 
@@ -22,10 +23,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'IKillAir App',
-      home: MainContainer(isAdmin: false),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'IKillAir App',
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: currentMode,
+          home: const MainContainer(isAdmin: false),
+        );
+      },
     );
   }
 }
