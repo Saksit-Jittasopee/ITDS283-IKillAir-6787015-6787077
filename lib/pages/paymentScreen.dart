@@ -19,7 +19,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -59,17 +59,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             MaterialPageRoute(builder: (context) => const ProfileScreen()),
                           );
                         },
-                        child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<String>(
                           valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
+                          builder: (context, imagePath, child) {
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(
                               radius: 20,
+                              backgroundColor: Colors.grey[200],
                               backgroundImage: imgProvider,
                             );
                           },
@@ -84,8 +87,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).cardColor, // เปลี่ยนให้ปรับตาม Theme
                   borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,8 +133,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         const Text('Credit/Debit Card', style: TextStyle(fontWeight: FontWeight.w500)),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 45, bottom: 10),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 45, bottom: 10),
                     ),
                     Row(
                       children: [
@@ -145,8 +151,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         const Text('Promptpay', style: TextStyle(fontWeight: FontWeight.w500)),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 45, bottom: 20),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 45, bottom: 20),
                     ),
                     SizedBox(
                       width: double.infinity,

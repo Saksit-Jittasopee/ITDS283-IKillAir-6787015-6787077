@@ -11,7 +11,7 @@ class PromptpayScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -46,21 +46,24 @@ class PromptpayScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                           },
-                          child: ValueListenableBuilder<dynamic>(
-                          valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
-                            ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
-                            } else {
-                              imgProvider = NetworkImage(imageVal.toString());
-                            }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
-                          },
-                        ),
+                          child: ValueListenableBuilder<String>(
+                            valueListenable: profileImageNotifier,
+                            builder: (context, imagePath, child) {
+                              ImageProvider imgProvider;
+                              if (imagePath.contains('assets/')) {
+                                imgProvider = AssetImage(imagePath);
+                              } else if (imagePath.startsWith('http')) {
+                                imgProvider = NetworkImage(imagePath);
+                              } else {
+                                imgProvider = FileImage(File(imagePath));
+                              }
+                              return CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.grey[200],
+                                backgroundImage: imgProvider,
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),

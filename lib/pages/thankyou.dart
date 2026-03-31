@@ -10,7 +10,7 @@ class ThankYouScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -38,17 +38,20 @@ class ThankYouScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                        child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<String>(
                           valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
+                          builder: (context, imagePath, child) {
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(
                               radius: 20,
+                              backgroundColor: Colors.grey[200],
                               backgroundImage: imgProvider,
                             );
                           },

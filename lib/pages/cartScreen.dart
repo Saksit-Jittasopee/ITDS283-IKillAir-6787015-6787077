@@ -10,8 +10,10 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -52,17 +54,20 @@ class CartScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                        child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<String>(
                           valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
+                          builder: (context, imagePath, child) {
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(
                               radius: 20,
+                              backgroundColor: Colors.grey[200],
                               backgroundImage: imgProvider,
                             );
                           },
@@ -76,7 +81,7 @@ class CartScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1),
+                  border: Border.all(color: isDark ? Colors.grey : Colors.black, width: 1), // ปรับสีขอบให้เข้ากับ Theme
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(
@@ -102,7 +107,7 @@ class CartScreen extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                 margin: const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
+                                  color: isDark ? Colors.grey[800] : Colors.grey[200], // ปรับสีพื้นหลังจำนวนสินค้า
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: const Text('1', style: TextStyle(fontSize: 12)),

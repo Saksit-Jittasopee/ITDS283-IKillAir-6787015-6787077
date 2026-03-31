@@ -9,7 +9,7 @@ class OurTeamScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -47,17 +47,20 @@ class OurTeamScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                         },
-                        child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<String>(
                           valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
+                          builder: (context, imagePath, child) {
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(
                               radius: 20,
+                              backgroundColor: Colors.grey[200],
                               backgroundImage: imgProvider,
                             );
                           },
@@ -69,6 +72,7 @@ class OurTeamScreen extends StatelessWidget {
               ),
               const SizedBox(height: 50),
               _buildMemberRow(
+                context, // ส่ง context ไปด้วยเพื่อเช็ค Theme
                 'Chanasorn Chirapongsaton',
                 '6787015',
                 'assets/images/team/Chanasorn.jpg',
@@ -76,6 +80,7 @@ class OurTeamScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               _buildMemberRow(
+                context,
                 'Saksit Jittasopee',
                 '6787077',
                 'assets/images/team/Saksit.jpg',
@@ -88,22 +93,24 @@ class OurTeamScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberRow(String name, String id, String imgPath, bool imgLeft) {
+  Widget _buildMemberRow(BuildContext context, String name, String id, String imgPath, bool imgLeft) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     final info = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Hello I\'m', style: TextStyle(fontSize: 16)),
         Text(name, style: const TextStyle(fontSize: 16)),
-        Text('Student ID: $id', style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+        Text('Student ID: $id', style: TextStyle(fontSize: 16, color: Colors.grey)), // เปลี่ยนเป็นสีที่เหมาะกับทั้งสอง Theme
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.facebook, color: Colors.blue, size: 28),
-            SizedBox(width: 8),
-            Icon(Icons.camera_alt, color: Colors.pink, size: 28),
-            SizedBox(width: 8),
-            Icon(Icons.code, color: Colors.black, size: 28),
+          children: [
+            const Icon(Icons.facebook, color: Colors.blue, size: 28),
+            const SizedBox(width: 8),
+            const Icon(Icons.camera_alt, color: Colors.pink, size: 28),
+            const SizedBox(width: 8),
+            Icon(Icons.code, color: isDark ? Colors.white : Colors.black, size: 28), // เปลี่ยนสีไอคอน Code ให้เข้ากับ Theme
           ],
         ),
       ],
