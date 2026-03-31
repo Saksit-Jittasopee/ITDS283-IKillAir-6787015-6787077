@@ -47,20 +47,17 @@ class OurTeamScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                         },
-                        child: ValueListenableBuilder<String>(
+                        child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
-                          builder: (context, imagePath, child) {
+                          builder: (context, imageVal, child) {
                             ImageProvider imgProvider;
-                            if (imagePath.contains('assets/')) {
-                              imgProvider = AssetImage(imagePath);
-                            } else if (imagePath.startsWith('http')) {
-                              imgProvider = NetworkImage(imagePath);
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
                             } else {
-                              imgProvider = FileImage(File(imagePath));
+                              imgProvider = NetworkImage(imageVal.toString());
                             }
                             return CircleAvatar(
                               radius: 20,
-                              backgroundColor: Colors.grey[200],
                               backgroundImage: imgProvider,
                             );
                           },
