@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/cardPayment.dart';
 import 'package:ikillair/pages/notification.dart';
@@ -57,9 +59,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             MaterialPageRoute(builder: (context) => const ProfileScreen()),
                           );
                         },
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                        child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
                         ),
                       ),
                     ],

@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 import 'package:ikillair/pages/thankyou.dart';
+import 'package:ikillair/main.dart';
 
 class CardPaymentScreen extends StatelessWidget {
   const CardPaymentScreen({super.key});
@@ -43,9 +45,20 @@ class CardPaymentScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                         child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
                         ),
                       ),
                     ],
