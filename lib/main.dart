@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminHomePage.dart';
 import 'package:ikillair/adminPages/adminNews.dart';
 import 'package:ikillair/adminPages/adminOrder.dart';
@@ -12,10 +13,13 @@ import 'package:ikillair/pages/weatherScreen.dart';
 import 'package:ikillair/pages/productScreen.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
-final ValueNotifier<dynamic> profileImageNotifier = ValueNotifier<dynamic>('/assets/images/team/Saksit.jpg');
+final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('/assets/images/team/Saksit.jpg');
 final ValueNotifier<String> usernameNotifier = ValueNotifier<String>('Saksit');
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env"); 
+  
   runApp(const MyApp());
 }
 

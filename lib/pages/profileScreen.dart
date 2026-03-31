@@ -33,14 +33,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     
     if (image != null) {
-      profileImageNotifier.value = File(image.path);
+      profileImageNotifier.value = image.path;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isDarkMode = themeNotifier.value == ThemeMode.dark;
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -66,17 +64,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: _pickImage,
                   child: Stack(
                     children: [
-                      ValueListenableBuilder<dynamic>(
+                      ValueListenableBuilder<String>(
                         valueListenable: profileImageNotifier,
-                        builder: (context, imageVal, child) {
+                        builder: (context, imagePath, child) {
                           ImageProvider imgProvider;
-                          if (imageVal is File) {
-                            imgProvider = FileImage(imageVal);
+                          if (imagePath.contains('assets/')) {
+                            imgProvider = AssetImage(imagePath);
+                          } else if (imagePath.startsWith('http')) {
+                            imgProvider = NetworkImage(imagePath);
                           } else {
-                            imgProvider = NetworkImage(imageVal.toString());
+                            imgProvider = FileImage(File(imagePath));
                           }
                           return CircleAvatar(
                             radius: 40,
+                            backgroundColor: Colors.grey[200],
                             backgroundImage: imgProvider,
                           );
                         },
@@ -133,9 +134,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 15),
-              _buildSwitchRow('Theme', isDarkMode, Colors.black, (val) {
-                themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
-              }),
+              ValueListenableBuilder<ThemeMode>(
+                valueListenable: themeNotifier,
+                builder: (context, currentTheme, child) {
+                  bool isDarkMode = currentTheme == ThemeMode.dark;
+                  return _buildSwitchRow('Theme', isDarkMode, Colors.black, (val) {
+                    themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+                  });
+                },
+              ),
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
