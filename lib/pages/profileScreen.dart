@@ -14,6 +14,19 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notification = true;
+  late TextEditingController _usernameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController(text: usernameNotifier.value);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -83,7 +96,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 30),
               _buildFieldLabel('Username'),
-              _buildTextField('Saksit', true),
+              TextField(
+                controller: _usernameController,
+                onChanged: (value) {
+                  usernameNotifier.value = value;
+                },
+                decoration: InputDecoration(
+                  suffixIcon: const Icon(Icons.edit_outlined),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                ),
+              ),
               const SizedBox(height: 20),
               _buildFieldLabel('Location'),
               _buildTextField('Bangkok, Thailand', true),

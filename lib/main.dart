@@ -13,6 +13,7 @@ import 'package:ikillair/pages/productScreen.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 final ValueNotifier<dynamic> profileImageNotifier = ValueNotifier<dynamic>('/assets/images/team/Saksit.jpg');
+final ValueNotifier<String> usernameNotifier = ValueNotifier<String>('Saksit');
 
 void main() {
   runApp(const MyApp());
