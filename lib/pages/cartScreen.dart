@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/paymentScreen.dart';
@@ -8,8 +10,10 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -50,9 +54,20 @@ class CartScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                        child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -63,7 +78,7 @@ class CartScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1),
+                  border: Border.all(color: isDark ? Colors.grey : Colors.black, width: 1), // ปรับสีขอบให้เข้ากับ Theme
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(
@@ -89,7 +104,7 @@ class CartScreen extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                 margin: const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
+                                  color: isDark ? Colors.grey[800] : Colors.grey[200], // ปรับสีพื้นหลังจำนวนสินค้า
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: const Text('1', style: TextStyle(fontSize: 12)),

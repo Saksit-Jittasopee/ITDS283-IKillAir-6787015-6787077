@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 import 'package:ikillair/api/waqi_api.dart';
@@ -65,10 +67,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    children: const [
-                      Text(
-                        'Hello, Saksit 👋',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    children: [
+                      ValueListenableBuilder<String>(
+                        valueListenable: usernameNotifier,
+                        builder: (context, username, child) {
+                          return Text(
+                            'Hello, $username 👋',
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -91,9 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             MaterialPageRoute(builder: (context) => const ProfileScreen()),
                           );
                         },
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                        child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
                         ),
                       ),
                     ],

@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/loginUser.dart';
 import 'package:ikillair/pages/team.dart';
 
@@ -11,12 +14,32 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notification = true;
-  bool _theme = false;
+  late TextEditingController _usernameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController(text: usernameNotifier.value);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      profileImageNotifier.value = image.path;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -37,27 +60,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 30),
               Center(
-                child: Stack(
-                  children: [
-                    const CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        child: const Icon(Icons.edit_outlined, size: 20),
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      ValueListenableBuilder<String>(
+                        valueListenable: profileImageNotifier,
+                        builder: (context, imagePath, child) {
+                          ImageProvider imgProvider;
+                          if (imagePath.contains('assets/')) {
+                            imgProvider = AssetImage(imagePath);
+                          } else if (imagePath.startsWith('http')) {
+                            imgProvider = NetworkImage(imagePath);
+                          } else {
+                            imgProvider = FileImage(File(imagePath));
+                          }
+                          return CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: imgProvider,
+                          );
+                        },
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+                          child: const Icon(Icons.edit_outlined, size: 16, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
               _buildFieldLabel('Username'),
-              _buildTextField('Saksit', true),
+              TextField(
+                controller: _usernameController,
+                onChanged: (value) {
+                  usernameNotifier.value = value;
+                },
+                decoration: InputDecoration(
+                  suffixIcon: const Icon(Icons.edit_outlined),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                ),
+              ),
               const SizedBox(height: 20),
               _buildFieldLabel('Location'),
               _buildTextField('Bangkok, Thailand', true),
@@ -69,21 +120,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: _buildSwitchRow('Notification', _notification, Colors.red, (val) => setState(() => _notification = val)),
                   ),
                   GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const OurTeamScreen()),
-                    );
-                  },
-                  child: Text(
-                    "Our Team",
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-                  ),
-                )
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OurTeamScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "Our Team",
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                    ),
+                  )
                 ],
               ),
               const SizedBox(height: 15),
-              _buildSwitchRow('Theme', _theme, Colors.black, (val) => setState(() => _theme = val)),
+              ValueListenableBuilder<ThemeMode>(
+                valueListenable: themeNotifier,
+                builder: (context, currentTheme, child) {
+                  bool isDarkMode = currentTheme == ThemeMode.dark;
+                  return _buildSwitchRow('Theme', isDarkMode, Colors.black, (val) {
+                    themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+                  });
+                },
+              ),
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,

@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:ikillair/main.dart';
 import 'package:ikillair/api/waqi_api.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -169,7 +171,6 @@ class _PollutionScreenState extends State<PollutionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -220,10 +221,21 @@ class _PollutionScreenState extends State<PollutionScreen> {
                                   MaterialPageRoute(builder: (context) => const ProfileScreen()),
                                 );
                               },
-                              child: const CircleAvatar(
-                                radius: 20,
-                                backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
-                              ),
+                               child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
+                        ),
                             ),
                           ],
                         ),
@@ -334,7 +346,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),

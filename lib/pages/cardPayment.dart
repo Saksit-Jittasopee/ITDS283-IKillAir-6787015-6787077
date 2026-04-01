@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 import 'package:ikillair/pages/thankyou.dart';
+import 'package:ikillair/main.dart';
 
 class CardPaymentScreen extends StatelessWidget {
   const CardPaymentScreen({super.key});
@@ -9,7 +11,7 @@ class CardPaymentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -43,9 +45,20 @@ class CardPaymentScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Saksit.jpg'),
+                         child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -57,8 +70,11 @@ class CardPaymentScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).cardColor, // ใช้สี Card ตาม Theme
                   borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,13 +82,13 @@ class CardPaymentScreen extends StatelessWidget {
                     const Center(child: Text('Credit/Debit Card', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
                     const SizedBox(height: 20),
                     _buildLabel('FIRST NAME'),
-                    _buildTextField('Enter your first name'),
+                    _buildTextField(context, 'Enter your first name'), // ส่ง context เพื่อเช็ค Theme
                     const SizedBox(height: 15),
                     _buildLabel('LAST NAME'),
-                    _buildTextField('Enter your last name'),
+                    _buildTextField(context, 'Enter your last name'),
                     const SizedBox(height: 15),
                     _buildLabel('CARD NUMBER'),
-                    _buildTextField('**** **** **** **** ****'),
+                    _buildTextField(context, '**** **** **** **** ****'),
                     const SizedBox(height: 15),
                     Row(
                       children: [
@@ -81,7 +97,7 @@ class CardPaymentScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildLabel('CVV'),
-                              _buildTextField('CVV'),
+                              _buildTextField(context, 'CVV'),
                             ],
                           ),
                         ),
@@ -91,7 +107,7 @@ class CardPaymentScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildLabel('VALID UNTIL'),
-                              _buildTextField('MM/YY'),
+                              _buildTextField(context, 'MM/YY'),
                             ],
                           ),
                         ),
@@ -130,16 +146,18 @@ class CardPaymentScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String hint) {
+  Widget _buildTextField(BuildContext context, String hint) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[800] : Colors.white, // ปรับสีช่องกรอกให้เข้ากับ Theme
         borderRadius: BorderRadius.circular(8),
       ),
       child: TextField(
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.bold),
+          hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey.shade400, fontWeight: FontWeight.bold),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         ),
