@@ -4,10 +4,104 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
+
+model Product {
+  id        Int     @id @default(autoincrement()) @map("Pro_ID")
+  name      String  @map("Pro_Name")       // Varchar(100)
+  price     Float   @map("Pro_Price")      // Float
+  category  String  @map("Pro_Cat")        // Varchar(100)
+  quantity  Int     @map("Pro_Quantity")   // int
+  status    Boolean @map("Pro_Status")     // bool (เช่น true = มีของ, false = หมด)
+  image     String  @map("Pro_Img")        // Varchar(100) เก็บ Path รูป
+
+  // -- ความสัมพันธ์ (1:M): 1 Product มีได้หลายออเดอร์ --
+  orderItems  Orditem[]
+
+  @@map("Product")
+}
+
+model Useradmin {
+  id        Int      @id @default(autoincrement()) @map("UA_ID")
+  username  String   @map("UA_Username") // db.VarChar(40)
+  password  String   @map("UA_Passwd")   // db.VarChar(255)
+  role      Boolean  @map("UA_Role")
+  status    Boolean  @map("UA_Status")
+  isNoti    Boolean  @map("UA_isNoti")
+  creDate   DateTime @default(now()) @map("UA_CreDate")
+  email     String   @map("UA_Email")    // db.VarChar(255) 
+
+// -- ความสัมพันธ์ (1:M): 1 User มีได้หลายอย่าง --
+  notifications Notification[]
+  orders        Order[]
+  news          News[]
+
+  @@map("Useradmin")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement()) @map("Noti_ID")
+  name      String   @map("Noti_Name")
+  message   String   @map("Noti_Message")
+  date      DateTime @default(now()) @map("Noti_Date")
+
+  // -- Foreign Key --
+  userId    Int      @map("UA_ID")
+  user      Useradmin @relation(fields: [userId], references: [id])
+
+  @@map("Notification")
+}
+
+model Order {
+  id          Int      @id @default(autoincrement()) @map("Ord_ID")
+  totalPrice  Float    @map("Ord_TotalPrice")
+  payMet      Boolean  @map("Ord_PayMet")
+  status      Boolean  @map("Ord_status")
+  creDate     DateTime @default(now()) @map("Ord_CreDate")
+
+  // -- Foreign Key ไปหา User --
+  userId      Int      @map("UA_ID")
+  user        Useradmin @relation(fields: [userId], references: [id])
+
+  // -- ความสัมพันธ์ไปหา Order Items --
+  orderItems  Orditem[]
+
+  @@map("Order")
+}
+
+model News {
+  id        Int      @id @default(autoincrement()) @map("News_ID")
+  name      String   @map("News_Name")
+  source    String   @map("News_Source")
+  image     String   @map("News_Img")
+  date      DateTime @default(now()) @map("News_Date")
+
+  // -- Foreign Key --
+  userId    Int      @map("UA_ID")
+  user      Useradmin @relation(fields: [userId], references: [id])
+
+  @@map("News")
+}
+
+model Orditem {
+  id        Int      @id @default(autoincrement()) @map("Orditems_ID")
+  quantity  Int      @map("Orditems_Quant")
+  price     Float    @map("Orditems_Price") // ราคารวมของสินค้านี้
+
+  // -- Foreign Keys --
+  orderId   Int      @map("Ord_ID")
+  productId Int      @map("Pro_ID")
+
+  // -- เชื่อมความสัมพันธ์ --
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("Orditem")
+}
+
