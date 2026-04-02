@@ -4,8 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const prisma = require('./config/db');
-
-// process.env.PORT is set by hosting provider defaults to 3000 
 const port = process.env.PORT || 3000;
 
 // Middleware
@@ -13,7 +11,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Import Routes
+const authRoutes = require('./routes/authRoutes.js');
+const userRoutes = require('./routes/userRoutes');
+
+// Use Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+
+// Test Route
 app.get('/', (req, res) => {
   res.json({ status: "OK", message: "Server is running perfectly! Jiblee mai" });
 });
@@ -22,15 +28,13 @@ app.get('/api/search', async (req, res) => {
   try {
     const keyword = req.query.q?.toLowerCase() || '';
     
-    // ถ้าไม่มีการค้นหา ให้ดึงข้อมูลทั้งหมดออกมา
-    // if (!keyword) {
-    //   const allUsers = await prisma.useradmin.findMany();
-    //   return res.json(allUsers);
-    // }
+    if (!keyword) {
+      const allUsers = await prisma.useradmin.findMany();
+      return res.json(allUsers);
+    }
 
-    // ถ้ามีการพิมพ์ค้นหา ให้หาจากชื่อ username หรือ email
     console.log(`Search query: ${keyword}`);
-    const results = await prisma.Useradmin.findMany();
+    const results = await prisma.useradmin.findMany();
 
     res.json(results);
 
