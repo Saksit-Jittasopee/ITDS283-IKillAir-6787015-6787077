@@ -1,36 +1,46 @@
+// setup
+require('dotenv').config(); 
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const prisma = require('./config/db');
 
+// process.env.PORT is set by hosting provider defaults to 3000 
+const port = process.env.PORT || 3000;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const mockProducts = [
-    {'id': 1, 'name': 'HealthPro 101', 'price': 1000.00, 'category': 'Room Air Purify'},
-    {'id': 2, 'name': 'Super Series', 'price': 1500.00, 'category': 'Room Air Purify'},
-    {'id': 3, 'name': 'AT-500', 'price': 5900.00, 'category': 'Personal Air Purify'},
-    {'id': 4, 'name': 'RZD-Airclean', 'price': 9990.50, 'category': 'Room Air Purify'},
-    {'id': 5, 'name': 'Air Monitor X', 'price': 2500.00, 'category': 'Air Quality Monitor'},
-    {'id': 6, 'name': 'N95 Mask Pro', 'price': 150.00, 'category': 'Mask'},
-    {'id': 7, 'name': 'Car Air Purify V1', 'price': 1200.00, 'category': 'Car Air Purify'},
-];
-
-app.get('/api/search', (req, res) => {
-  const keyword = req.query.q?.toLowerCase() || '';
-  
-  if (!keyword) {
-    return res.json(mockProducts);
-  }
-
-  const results = mockProducts.filter(p => 
-    p.name.toLowerCase().includes(keyword) || 
-    p.category.toLowerCase().includes(keyword)
-  );
-  
-  res.json(results);
+// Routes
+app.get('/', (req, res) => {
+  res.json({ status: "OK", message: "Server is running perfectly! Jiblee mai" });
 });
 
+app.get('/api/search', async (req, res) => {
+  try {
+    const keyword = req.query.q?.toLowerCase() || '';
+    
+    // ถ้าไม่มีการค้นหา ให้ดึงข้อมูลทั้งหมดออกมา
+    // if (!keyword) {
+    //   const allUsers = await prisma.useradmin.findMany();
+    //   return res.json(allUsers);
+    // }
+
+    // ถ้ามีการพิมพ์ค้นหา ให้หาจากชื่อ username หรือ email
+    console.log(`Search query: ${keyword}`);
+    const results = await prisma.Useradmin.findMany();
+
+    res.json(results);
+
+  } catch (error) {
+    console.error("Database Error:", error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูล" });
+  }
+});
+
+// Start the server
 app.listen(port, () => {
-  console.log(`Server running at port:${port}`);
+  console.log(`Server running at port: ${port}`);
 });
