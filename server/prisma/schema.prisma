@@ -10,6 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  
 }
 
 model Product {
@@ -18,7 +19,7 @@ model Product {
   price     Float   @map("Pro_Price")      // Float
   category  String  @map("Pro_Cat")        // Varchar(100)
   quantity  Int     @map("Pro_Quantity")   // int
-  status    Boolean @map("Pro_Status")     // bool (เช่น true = มีของ, false = หมด)
+  status    Boolean @map("Pro_Status")     // bool 
   image     String  @map("Pro_Img")        // Varchar(100) เก็บ Path รูป
 
   // -- ความสัมพันธ์ (1:M): 1 Product มีได้หลายออเดอร์ --
@@ -92,7 +93,7 @@ model News {
 model Orditem {
   id        Int      @id @default(autoincrement()) @map("Orditems_ID")
   quantity  Int      @map("Orditems_Quant")
-  price     Float    @map("Orditems_Price") // ราคารวมของสินค้านี้
+  price     Float    @map("Orditems_Price") 
 
   // -- Foreign Keys --
   orderId   Int      @map("Ord_ID")
