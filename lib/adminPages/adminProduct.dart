@@ -16,13 +16,20 @@ class AdminProduct extends StatefulWidget {
 
 class _AdminProductState extends State<AdminProduct> {
   List<dynamic> _allProducts = [];
+  final ScrollController _categoryScrollController = ScrollController();
 
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
-    fetchProducts(''); // ดึงข้อมูลทั้งหมดตอนเปิดหน้ามาครั้งแรก
+    fetchProducts('');
+  }
+
+  @override
+  void dispose() {
+    _categoryScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchProducts(String query) async {
@@ -41,7 +48,6 @@ class _AdminProductState extends State<AdminProduct> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // นำ backgroundColor: Colors.white ออก เพื่อให้ปรับตาม Theme
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -100,20 +106,31 @@ class _AdminProductState extends State<AdminProduct> {
                 ),
               ),
               const SizedBox(height: 20),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildCategory('All', true),
-                    _buildCategory('Personal Air Purify', false),
-                    _buildCategory('Car Air Purify', false),
-                    _buildCategory('Room Air Purify', false),
-                    _buildCategory('Air Quality Monitor', false),
-                    _buildCategory('Mask', false),
-                  ],
+              Scrollbar(
+                controller: _categoryScrollController,
+                thumbVisibility: true,
+                thickness: 4,
+                radius: const Radius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: SingleChildScrollView(
+                    controller: _categoryScrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _buildCategory('All', true),
+                        _buildCategory('Personal Air Purify', false),
+                        _buildCategory('Car Air Purify', false),
+                        _buildCategory('Room Air Purify', false),
+                        _buildCategory('Air Quality Monitor', false),
+                        _buildCategory('Mask', false),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               const Text('All products', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Expanded(
@@ -406,7 +423,7 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                 TextFormField(
                   controller: _nameController,
                   validator: (value) => value == null || value.isEmpty ? 'Please enter product name' : null,
-                  decoration: _buildInputDecoration(hint: 'Enter product name'),
+                  decoration: _buildInputDecoration(hint: 'Enter product name', isDark: isDark),
                 ),
                 const SizedBox(height: 20),
                 _buildFieldLabel('Price (Baht)'),
@@ -418,7 +435,7 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                     if (double.tryParse(value) == null) return 'Please enter a valid number';
                     return null;
                   },
-                  decoration: _buildInputDecoration(hint: 'Enter product price'),
+                  decoration: _buildInputDecoration(hint: 'Enter product price', isDark: isDark),
                 ),
                 const SizedBox(height: 40),
                 SizedBox(
@@ -463,13 +480,12 @@ class _ProductFormPageState extends State<_ProductFormPage> {
     );
   }
 
-  InputDecoration _buildInputDecoration({required String hint}) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+  InputDecoration _buildInputDecoration({required String hint, required bool isDark}) {
     return InputDecoration(
       hintText: hint,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300)),
     );
   }
 }

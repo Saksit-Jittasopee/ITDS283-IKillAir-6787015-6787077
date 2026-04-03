@@ -16,12 +16,20 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   List<dynamic> _featuredProducts = [];
+  final ScrollController _categoryScrollController = ScrollController();
+  
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
     searchProducts('');
+  }
+
+  @override
+  void dispose() {
+    _categoryScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> searchProducts(String query) async {
@@ -106,27 +114,38 @@ class _ProductScreenState extends State<ProductScreen> {
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: const Icon(Icons.tune),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[100],
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
                 ),
               ),
               const SizedBox(height: 20),
               const Text('Categories', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildCategory('All', true),
-                    _buildCategory('Personal Air Purify', false),
-                    _buildCategory('Car Air Purify', false),
-                    _buildCategory('Room Air Purify', false),
-                    _buildCategory('Air Quality Monitor', false),
-                    _buildCategory('Mask', false),
-                  ],
+              Scrollbar(
+                controller: _categoryScrollController,
+                thumbVisibility: true,
+                thickness: 4,
+                radius: const Radius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: SingleChildScrollView(
+                    controller: _categoryScrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _buildCategory('All', true),
+                        _buildCategory('Personal Air Purify', false),
+                        _buildCategory('Car Air Purify', false),
+                        _buildCategory('Room Air Purify', false),
+                        _buildCategory('Air Quality Monitor', false),
+                        _buildCategory('Mask', false),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               const Text('Featured products', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Expanded(
@@ -176,7 +195,7 @@ class _ProductScreenState extends State<ProductScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Container(color: Colors.grey[300])),
+          Expanded(child: Container(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
