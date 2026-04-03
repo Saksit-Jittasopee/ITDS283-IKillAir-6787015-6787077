@@ -96,7 +96,7 @@ class _AdminUserState extends State<AdminUser> {
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: 850,
+                    width: 900,
                     child: Column(
                       children: [
                         Container(
@@ -109,7 +109,7 @@ class _AdminUserState extends State<AdminUser> {
                               SizedBox(width: 100, child: Text("Role", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
                               SizedBox(width: 250, child: Text("Email", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
                               SizedBox(width: 120, child: Text("Password", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                              SizedBox(width: 60, child: Text("Edit", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 100, child: Text("Actions", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
                             ],
                           ),
                         ),
@@ -130,6 +130,11 @@ class _AdminUserState extends State<AdminUser> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openAddUserPage(context),
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -177,20 +182,70 @@ class _AdminUserState extends State<AdminUser> {
             child: Text(user['password'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
           ),
           SizedBox(
-            width: 60,
+            width: 100,
             child: Align(
               alignment: Alignment.centerLeft,
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                onPressed: () => _openEditUserPage(context, user, index),
+              child: Row(
+                children: [
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                    onPressed: () => _openEditUserPage(context, user, index),
+                  ),
+                  const SizedBox(width: 15),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: () => _confirmDeleteUser(context, user['username'], index),
+                  ),
+                ],
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _confirmDeleteUser(BuildContext context, String username, int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete User?'),
+        content: Text('Are you sure you want to delete user "$username"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _users.removeAt(index);
+              });
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openAddUserPage(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const _UserFormPage(),
+      ),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        final newId = _users.isEmpty ? 1 : _users.map((u) => u['id'] as int).reduce((a, b) => a > b ? a : b) + 1;
+        result['id'] = newId;
+        _users.add(result);
+      });
+    }
   }
 
   Future<void> _openEditUserPage(BuildContext context, Map<String, dynamic> user, int index) async {
@@ -210,10 +265,10 @@ class _AdminUserState extends State<AdminUser> {
 }
 
 class _UserFormPage extends StatefulWidget {
-  final Map<String, dynamic> user;
-  final int index;
+  final Map<String, dynamic>? user;
+  final int? index;
 
-  const _UserFormPage({required this.user, required this.index});
+  const _UserFormPage({this.user, this.index});
 
   @override
   State<_UserFormPage> createState() => _UserFormPageState();
@@ -230,11 +285,12 @@ class _UserFormPageState extends State<_UserFormPage> {
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController(text: widget.user['username']);
-    _passwordController = TextEditingController(text: widget.user['password']);
-    _emailController = TextEditingController(text: widget.user['email']);
-    _isAdmin = widget.user['isAdmin'] ?? false;
-    _isActive = widget.user['isActive'] ?? true;
+    bool isEdit = widget.user != null;
+    _usernameController = TextEditingController(text: isEdit ? widget.user!['username'] : '');
+    _passwordController = TextEditingController(text: isEdit ? widget.user!['password'] : '');
+    _emailController = TextEditingController(text: isEdit ? widget.user!['email'] : '');
+    _isAdmin = isEdit ? (widget.user!['isAdmin'] ?? false) : false;
+    _isActive = isEdit ? (widget.user!['isActive'] ?? true) : true;
   }
 
   @override
@@ -248,6 +304,7 @@ class _UserFormPageState extends State<_UserFormPage> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    bool isEdit = widget.user != null;
 
     return Scaffold(
       body: SafeArea(
@@ -267,7 +324,7 @@ class _UserFormPageState extends State<_UserFormPage> {
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 15),
-                    const Text('Edit User', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(isEdit ? 'Edit User' : 'Add User', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 30),
@@ -358,7 +415,7 @@ class _UserFormPageState extends State<_UserFormPage> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         final updatedUser = {
-                          'id': widget.user['id'],
+                          'id': isEdit ? widget.user!['id'] : null,
                           'username': _usernameController.text,
                           'email': _emailController.text,
                           'password': _passwordController.text,
@@ -373,7 +430,7 @@ class _UserFormPageState extends State<_UserFormPage> {
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('SAVE CHANGES', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(isEdit ? 'SAVE CHANGES' : 'ADD USER', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
