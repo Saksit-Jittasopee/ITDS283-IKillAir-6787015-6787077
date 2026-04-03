@@ -37,7 +37,8 @@ class MyApp extends StatelessWidget {
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: currentMode,
-          home: const MainContainer(isAdmin: false),
+          // เปลี่ยนตรงนี้เป็น true เพื่อเข้าสู่โหมด Admin
+          home: const MainContainer(isAdmin: true),
         );
       },
     );
@@ -72,7 +73,7 @@ class _MainContainerState extends State<MainContainer> {
     ];
 
     _adminPages = [
-      const AdminHome(),
+      AdminHome(onNavigate: (index) => setState(() => _selectedIndex = index)),
       const AdminProduct(),
       const AdminUser(),
       const AdminOrder(),

@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const Text(
-                  'Log in to continue',
+                  'Sign in to continue',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey,
@@ -135,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                       }
                     },
                     child: const Text(
-                      'LOG IN',
+                      'SIGN IN',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

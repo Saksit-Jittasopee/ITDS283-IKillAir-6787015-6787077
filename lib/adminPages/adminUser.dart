@@ -1,14 +1,34 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:ikillair/pages/notification.dart';
+import 'package:ikillair/adminPages/adminNotification.dart';
+import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class AdminUser extends StatelessWidget {
+class AdminUser extends StatefulWidget {
   const AdminUser({super.key});
+
+  @override
+  State<AdminUser> createState() => _AdminUserState();
+}
+
+class _AdminUserState extends State<AdminUser> {
+  final ScrollController _scrollController = ScrollController();
+  
+  List<Map<String, dynamic>> _users = [
+    {'id': 1, 'username': 'Suggus17', 'email': 'chanasorn.chi@student.mahidol.ac.th', 'password': 'password123', 'isAdmin': false, 'isActive': true},
+    {'id': 2, 'username': 'Saksit', 'email': 'saksit.jit@student.mahidol.ac.th', 'password': 'password123', 'isAdmin': true, 'isActive': true},
+    {'id': 3, 'username': 'WISHERCARTs', 'email': 'wishercarts@gmail.com', 'password': 'password123', 'isAdmin': false, 'isActive': false},
+  ];
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -24,7 +44,7 @@ class AdminUser extends StatelessWidget {
                         children: [
                           IconButton(
                             onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminNotification()));
                             },
                             icon: const Icon(Icons.notifications_none, size: 28),
                           ),
@@ -33,9 +53,20 @@ class AdminUser extends StatelessWidget {
                             onTap: () {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                             },
-                            child: const CircleAvatar(
-                              radius: 20,
-                              backgroundImage: NetworkImage('/assets/images/team/Chanasorn.jpg'),
+                            child: ValueListenableBuilder<dynamic>(
+                              valueListenable: profileImageNotifier,
+                              builder: (context, imageVal, child) {
+                                ImageProvider imgProvider;
+                                if (imageVal is File) {
+                                  imgProvider = FileImage(imageVal);
+                                } else {
+                                  imgProvider = NetworkImage(imageVal.toString());
+                                }
+                                return CircleAvatar(
+                                  radius: 20,
+                                  backgroundImage: imgProvider,
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -55,43 +86,357 @@ class AdminUser extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              color: const Color(0xFF007BFF),
-              child: Row(
-                children: const [
-                  SizedBox(width: 40),
-                  Expanded(flex: 2, child: Text("User's name", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                  Expanded(flex: 3, child: Text("Email", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                ],
-              ),
-            ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildUserRow('Suggus17', 'chanasorn.chi...'),
-                  _buildUserRow('Saksit', 'saksit.jit@stu...'),
-                  _buildUserRow('WISHERCARTs', 'wishercarts@...'),
-                ],
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                thickness: 6,
+                radius: const Radius.circular(10),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: 900,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                          color: const Color(0xFF007BFF),
+                          child: Row(
+                            children: const [
+                              SizedBox(width: 60, child: Text("Status", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 150, child: Text("Username", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 100, child: Text("Role", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 250, child: Text("Email", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 120, child: Text("Password", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 100, child: Text("Actions", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: _users.length,
+                            itemBuilder: (context, index) {
+                              return _buildUserRow(_users[index], index);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openAddUserPage(context),
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
-  Widget _buildUserRow(String name, String email) {
+  Widget _buildUserRow(Map<String, dynamic> user, int index) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15),
       child: Row(
         children: [
-          const Icon(Icons.radio_button_unchecked, color: Colors.black54, size: 20),
-          const SizedBox(width: 20),
-          Expanded(flex: 2, child: Text(name, style: const TextStyle(fontSize: 14))),
-          Expanded(flex: 3, child: Text(email, style: const TextStyle(fontSize: 14))),
+          SizedBox(
+            width: 60,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Icon(
+                user['isActive'] ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                color: user['isActive'] ? Colors.green : Colors.grey,
+                size: 20,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 150,
+            child: Text(user['username'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          ),
+          SizedBox(
+            width: 100,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: user['isAdmin'] ? Colors.blue.shade100 : Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
+                child: Text(
+                  user['isAdmin'] ? 'Admin' : 'User',
+                  style: TextStyle(fontSize: 12, color: user['isAdmin'] ? Colors.blue : Colors.grey.shade700, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 250,
+            child: Text(user['email'], style: const TextStyle(fontSize: 14)),
+          ),
+          SizedBox(
+            width: 120,
+            child: Text(user['password'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          ),
+          SizedBox(
+            width: 100,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                    onPressed: () => _openEditUserPage(context, user, index),
+                  ),
+                  const SizedBox(width: 15),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: () => _confirmDeleteUser(context, user['username'], index),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _confirmDeleteUser(BuildContext context, String username, int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete User?'),
+        content: Text('Are you sure you want to delete user "$username"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _users.removeAt(index);
+              });
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openAddUserPage(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const _UserFormPage(),
+      ),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        final newId = _users.isEmpty ? 1 : _users.map((u) => u['id'] as int).reduce((a, b) => a > b ? a : b) + 1;
+        result['id'] = newId;
+        _users.add(result);
+      });
+    }
+  }
+
+  Future<void> _openEditUserPage(BuildContext context, Map<String, dynamic> user, int index) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _UserFormPage(user: user, index: index),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _users[index] = result;
+      });
+    }
+  }
+}
+
+class _UserFormPage extends StatefulWidget {
+  final Map<String, dynamic>? user;
+  final int? index;
+
+  const _UserFormPage({this.user, this.index});
+
+  @override
+  State<_UserFormPage> createState() => _UserFormPageState();
+}
+
+class _UserFormPageState extends State<_UserFormPage> {
+  late TextEditingController _usernameController;
+  late TextEditingController _passwordController;
+  late TextEditingController _emailController;
+  late bool _isAdmin;
+  late bool _isActive;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    bool isEdit = widget.user != null;
+    _usernameController = TextEditingController(text: isEdit ? widget.user!['username'] : '');
+    _passwordController = TextEditingController(text: isEdit ? widget.user!['password'] : '');
+    _emailController = TextEditingController(text: isEdit ? widget.user!['email'] : '');
+    _isAdmin = isEdit ? (widget.user!['isAdmin'] ?? false) : false;
+    _isActive = isEdit ? (widget.user!['isActive'] ?? true) : true;
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    bool isEdit = widget.user != null;
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.arrow_back_ios, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 15),
+                    Text(isEdit ? 'Edit User' : 'Add User', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                const Text('Username', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _usernameController,
+                  validator: (value) => value!.isEmpty ? 'Please enter username' : null,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text('Email', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _emailController,
+                  validator: (value) => value!.isEmpty ? 'Please enter email' : null,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text('Password', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  validator: (value) => value!.isEmpty ? 'Please enter password' : null,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[800] : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Role: Admin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          Switch(
+                            value: _isAdmin,
+                            activeColor: Colors.blue,
+                            onChanged: (val) {
+                              setState(() {
+                                _isAdmin = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 30),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Status: Active', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          Switch(
+                            value: _isActive,
+                            activeColor: Colors.green,
+                            onChanged: (val) {
+                              setState(() {
+                                _isActive = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        final updatedUser = {
+                          'id': isEdit ? widget.user!['id'] : null,
+                          'username': _usernameController.text,
+                          'email': _emailController.text,
+                          'password': _passwordController.text,
+                          'isAdmin': _isAdmin,
+                          'isActive': _isActive,
+                        };
+                        Navigator.pop(context, updatedUser);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text(isEdit ? 'SAVE CHANGES' : 'ADD USER', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
