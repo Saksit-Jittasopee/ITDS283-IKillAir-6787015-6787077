@@ -12,11 +12,19 @@ class AdminUser extends StatefulWidget {
 }
 
 class _AdminUserState extends State<AdminUser> {
+  final ScrollController _scrollController = ScrollController();
+  
   List<Map<String, dynamic>> _users = [
     {'id': 1, 'username': 'Suggus17', 'email': 'chanasorn.chi@student.mahidol.ac.th', 'password': 'password123', 'isAdmin': false, 'isActive': true},
     {'id': 2, 'username': 'Saksit', 'email': 'saksit.jit@student.mahidol.ac.th', 'password': 'password123', 'isAdmin': true, 'isActive': true},
     {'id': 3, 'username': 'WISHERCARTs', 'email': 'wishercarts@gmail.com', 'password': 'password123', 'isAdmin': false, 'isActive': false},
   ];
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,20 +54,20 @@ class _AdminUserState extends State<AdminUser> {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                             },
                             child: ValueListenableBuilder<dynamic>(
-                          valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
-                            ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
-                            } else {
-                              imgProvider = NetworkImage(imageVal.toString());
-                            }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
-                          },
-                        ),
+                              valueListenable: profileImageNotifier,
+                              builder: (context, imageVal, child) {
+                                ImageProvider imgProvider;
+                                if (imageVal is File) {
+                                  imgProvider = FileImage(imageVal);
+                                } else {
+                                  imgProvider = NetworkImage(imageVal.toString());
+                                }
+                                return CircleAvatar(
+                                  radius: 20,
+                                  backgroundImage: imgProvider,
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -78,25 +86,46 @@ class _AdminUserState extends State<AdminUser> {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              color: const Color(0xFF007BFF),
-              child: Row(
-                children: const [
-                  SizedBox(width: 40),
-                  Expanded(flex: 2, child: Text("User's name", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                  Expanded(flex: 3, child: Text("Email", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                  SizedBox(width: 40),
-                ],
-              ),
-            ),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _users.length,
-                itemBuilder: (context, index) {
-                  return _buildUserRow(_users[index], index);
-                },
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                thickness: 6,
+                radius: const Radius.circular(10),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: 850,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                          color: const Color(0xFF007BFF),
+                          child: Row(
+                            children: const [
+                              SizedBox(width: 60, child: Text("Status", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 150, child: Text("Username", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 100, child: Text("Role", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 250, child: Text("Email", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 120, child: Text("Password", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                              SizedBox(width: 60, child: Text("Edit", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: _users.length,
+                            itemBuilder: (context, index) {
+                              return _buildUserRow(_users[index], index);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -110,32 +139,54 @@ class _AdminUserState extends State<AdminUser> {
       padding: const EdgeInsets.symmetric(vertical: 15),
       child: Row(
         children: [
-          Icon(
-            user['isActive'] ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-            color: user['isActive'] ? Colors.green : Colors.grey,
-            size: 20,
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(user['username'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                if (user['isAdmin'])
-                  Container(
-                    margin: const EdgeInsets.only(top: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.blue.shade100, borderRadius: BorderRadius.circular(4)),
-                    child: const Text('Admin', style: TextStyle(fontSize: 10, color: Colors.blue)),
-                  ),
-              ],
+          SizedBox(
+            width: 60,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Icon(
+                user['isActive'] ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                color: user['isActive'] ? Colors.green : Colors.grey,
+                size: 20,
+              ),
             ),
           ),
-          Expanded(flex: 3, child: Text(user['email'], style: const TextStyle(fontSize: 14))),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-            onPressed: () => _openEditUserPage(context, user, index),
+          SizedBox(
+            width: 150,
+            child: Text(user['username'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          ),
+          SizedBox(
+            width: 100,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: user['isAdmin'] ? Colors.blue.shade100 : Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
+                child: Text(
+                  user['isAdmin'] ? 'Admin' : 'User',
+                  style: TextStyle(fontSize: 12, color: user['isAdmin'] ? Colors.blue : Colors.grey.shade700, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 250,
+            child: Text(user['email'], style: const TextStyle(fontSize: 14)),
+          ),
+          SizedBox(
+            width: 120,
+            child: Text(user['password'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          ),
+          SizedBox(
+            width: 60,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                onPressed: () => _openEditUserPage(context, user, index),
+              ),
+            ),
           ),
         ],
       ),
