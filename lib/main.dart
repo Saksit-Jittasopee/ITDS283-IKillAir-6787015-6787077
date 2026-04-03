@@ -73,7 +73,7 @@ class _MainContainerState extends State<MainContainer> {
     ];
 
     _adminPages = [
-      AdminHome(onNavigate: (index) => setState(() => _selectedIndex = index)), // แก้ไขส่ง onNavigate เข้าไป
+      AdminHome(onNavigate: (index) => setState(() => _selectedIndex = index)),
       const AdminProduct(),
       const AdminUser(),
       const AdminOrder(),

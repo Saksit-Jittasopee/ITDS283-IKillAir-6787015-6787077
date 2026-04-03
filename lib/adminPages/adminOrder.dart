@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
@@ -14,16 +16,33 @@ class AdminOrder extends StatefulWidget {
 class _AdminOrderState extends State<AdminOrder> {
   final ScrollController _scrollController = ScrollController();
 
-  List<Map<String, dynamic>> _orders = [
-    {'id': 1, 'username': 'Suggus17', 'product': 'HealthPro 101', 'orderId': '2786123227904'},
-    {'id': 2, 'username': 'Saksit', 'product': 'Super Series', 'orderId': '880087884925'},
-    {'id': 3, 'username': 'WISHERCARTs', 'product': 'AT-500', 'orderId': '970896978872'},
-  ];
+  List<dynamic> _orders = [];
+
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchOrders(''); 
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchOrders(String query) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/search/orders?q=$query'));
+      if (response.statusCode == 200) {
+        setState(() {
+          _orders = jsonDecode(response.body);
+        });
+      }
+    } catch (e) {
+      print("Error fetching orders: $e");
+    }
   }
 
   @override
@@ -75,6 +94,7 @@ class _AdminOrderState extends State<AdminOrder> {
                   ),
                   const SizedBox(height: 20),
                   TextField(
+                  onChanged: (value) => fetchOrders(value),
                     decoration: InputDecoration(
                       hintText: 'Search orders',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),

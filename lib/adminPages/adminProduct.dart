@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
@@ -13,14 +15,28 @@ class AdminProduct extends StatefulWidget {
 }
 
 class _AdminProductState extends State<AdminProduct> {
-  List<Map<String, dynamic>> _allProducts = [
-    {'id': 1, 'name': 'HealthPro 101', 'price': 1000.00, 'category': 'Room Air Purify', 'imagePath': null},
-    {'id': 2, 'name': 'Super Series', 'price': 1500.00, 'category': 'Car Air Purify', 'imagePath': null},
-    {'id': 3, 'name': 'AT-500', 'price': 5900.00, 'category': 'Personal Air Purify', 'imagePath': null},
-    {'id': 4, 'name': 'RZD-Airclean', 'price': 9990.50, 'category': 'Air Quality Monitor', 'imagePath': null},
-    {'id': 5, 'name': 'Super Air', 'price': 12000.00, 'category': 'Room Air Purify', 'imagePath': null},
-    {'id': 6, 'name': 'Health Mask', 'price': 150.00, 'category': 'Mask', 'imagePath': null},
-  ];
+  List<dynamic> _allProducts = [];
+
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProducts(''); // ดึงข้อมูลทั้งหมดตอนเปิดหน้ามาครั้งแรก
+  }
+
+  Future<void> fetchProducts(String query) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/search/products?q=$query'));
+      if (response.statusCode == 200) {
+        setState(() {
+          _allProducts = jsonDecode(response.body);
+        });
+      }
+    } catch (e) {
+      print("Error fetching products: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +87,9 @@ class _AdminProductState extends State<AdminProduct> {
               ),
               const SizedBox(height: 20),
               TextField(
+                onChanged: (value) {
+                  fetchProducts(value);
+                },
                 decoration: InputDecoration(
                   hintText: 'Search products',
                   prefixIcon: const Icon(Icons.search),
