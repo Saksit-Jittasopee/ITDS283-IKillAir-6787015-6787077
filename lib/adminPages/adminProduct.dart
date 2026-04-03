@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
-import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
 class AdminProduct extends StatefulWidget {
@@ -40,7 +40,7 @@ class _AdminProductState extends State<AdminProduct> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminNotification()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
