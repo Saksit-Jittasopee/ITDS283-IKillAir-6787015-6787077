@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/main.dart';
@@ -5,8 +7,35 @@ import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class ProductScreen extends StatelessWidget {
+class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
+
+  @override
+  State<ProductScreen> createState() => _ProductScreenState();
+}
+
+class _ProductScreenState extends State<ProductScreen> {
+  List<dynamic> _featuredProducts = [];
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    searchProducts('');
+  }
+
+  Future<void> searchProducts(String query) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/search/products?q=$query'));
+      if (response.statusCode == 200) {
+        setState(() {
+          _featuredProducts = jsonDecode(response.body);
+        });
+      }
+    } catch (e) {
+      print("Error searching products: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +100,7 @@ class ProductScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               TextField(
+                onChanged: (value) => searchProducts(value),
                 decoration: InputDecoration(
                   hintText: 'Search products',
                   prefixIcon: const Icon(Icons.search),
@@ -100,17 +130,22 @@ class ProductScreen extends StatelessWidget {
               const Text('Featured products', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                  childAspectRatio: 0.8,
-                  children: [
-                    _buildProductCard(context, 'HealthPro 101', '1000.00 Baht'),
-                    _buildProductCard(context, 'Super Series', '1500.00 Baht'),
-                    _buildProductCard(context, 'AT-500', '5900.00 Baht'),
-                    _buildProductCard(context, 'RZD-Airclean', '9990.50 Baht'),
-                  ],
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: _featuredProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = _featuredProducts[index];
+                    return _buildProductCard(
+                      context, 
+                      product['name'] ?? 'Unknown', 
+                      '${product['price']} Baht'
+                    );
+                  },
                 ),
               ),
             ],
