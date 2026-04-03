@@ -1,14 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
 class AdminHome extends StatelessWidget {
-  const AdminHome({super.key});
+  final Function(int)? onNavigate;
+
+  const AdminHome({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -18,9 +23,14 @@ class AdminHome extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Hello,\nChanasorn👋',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
+                  ValueListenableBuilder<String>(
+                    valueListenable: usernameNotifier,
+                    builder: (context, username, child) {
+                      return Text(
+                        'Hello, $username 👋',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      );
+                    },
                   ),
                   Row(
                     children: [
@@ -35,9 +45,20 @@ class AdminHome extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('/assets/images/team/Chanasorn.jpg'),
+                         child: ValueListenableBuilder<dynamic>(
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -47,13 +68,19 @@ class AdminHome extends StatelessWidget {
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('Product Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
-                  Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                children: [
+                  const Text('Products Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  GestureDetector(
+                    onTap: () {
+                      if (onNavigate != null) onNavigate!(1);
+                    },
+                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                  ),
                 ],
               ),
               const SizedBox(height: 15),
               _buildStatCard(
+                context,
                 'Products Available',
                 '71 Products',
                 Icons.inventory_2,
@@ -62,6 +89,7 @@ class AdminHome extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               _buildStatCard(
+                context,
                 'Total Product Sales',
                 '89,000 Baht',
                 Icons.show_chart,
@@ -71,16 +99,21 @@ class AdminHome extends StatelessWidget {
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('Users Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
-                  Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                children: [
+                  const Text('Users Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  GestureDetector(
+                    onTap: () {
+                      if (onNavigate != null) onNavigate!(2); // เปลี่ยนไปแท็บ Users (index 2)
+                    },
+                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                  ),
                 ],
               ),
               const SizedBox(height: 15),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
@@ -93,10 +126,10 @@ class AdminHome extends StatelessWidget {
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Total Users', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                            SizedBox(height: 8),
-                            Text('3', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          children: [
+                            Text('Total Users', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 14)),
+                            const SizedBox(height: 8),
+                            const Text('3', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         Container(
@@ -108,10 +141,10 @@ class AdminHome extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     Row(
-                      children: const [
-                        Icon(Icons.trending_up, color: Colors.teal, size: 16),
-                        SizedBox(width: 8),
-                        Text('2 Users currently online', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      children: [
+                        const Icon(Icons.trending_up, color: Colors.teal, size: 16),
+                        const SizedBox(width: 8),
+                        Text('2 Users currently online', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
@@ -124,11 +157,13 @@ class AdminHome extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color bgColor, Color iconColor) {
+  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color bgColor, Color iconColor) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
@@ -140,7 +175,7 @@ class AdminHome extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+              Text(title, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 14)),
               const SizedBox(height: 8),
               Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             ],
