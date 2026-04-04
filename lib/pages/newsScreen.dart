@@ -40,6 +40,12 @@ class _NewsScreenState extends State<NewsScreen> {
     }
   }
 
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,7 +116,7 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Widget _buildNewsCard(dynamic news) {
-    String imagePath = news['imagePath'] ?? '';
+    String displayPath = getImageUrl(news['imagePath']);
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
@@ -119,11 +125,11 @@ class _NewsScreenState extends State<NewsScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(30),
-            child: imagePath.startsWith('assets/')
-                ? Image.asset(imagePath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                : imagePath.startsWith('http')
-                    ? Image.network(imagePath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                    : Image.file(File(imagePath), fit: BoxFit.cover, width: double.infinity, height: 200),
+            child: displayPath.startsWith('assets/')
+                ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                : displayPath.startsWith('http')
+                    ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                    : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
           ),
           const SizedBox(height: 15),
           Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
