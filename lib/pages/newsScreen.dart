@@ -1,11 +1,44 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class NewsScreen extends StatelessWidget {
+class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
+
+  @override
+  State<NewsScreen> createState() => _NewsScreenState();
+}
+
+class _NewsScreenState extends State<NewsScreen> {
+  List<dynamic> _newsList = [];
+  bool _isLoading = true;
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNews();
+  }
+
+  Future<void> fetchNews() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/news'));
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _newsList = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,22 +57,16 @@ class NewsScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                         child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
                             ImageProvider imgProvider;
@@ -62,48 +89,49 @@ class NewsScreen extends StatelessWidget {
               const SizedBox(height: 20),
               const Text('Latest News', style: TextStyle(fontSize: 20, color: Colors.indigo)),
               const SizedBox(height: 20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: Image.network('/assets/images/news/pm2.5.webp', fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'https://www.bbc.com/thai/articles/ckkl7r05z34o',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                '1 Hour Ago - BBC Thailand',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 30),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: Image.network('/assets/images/news/reduce_energy.jpg', fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                'รัฐบาลออกมาตรการประหยัดพลังงาน พลัส ยกกำลัง 2 ควบคุมราคาสินค้า สั่งผู้ว่าฯ ผ่อนผัน รถส่งน้ำมันวิ่ง 24 ชม.',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'https://www.prd.go.th/th/content/category/detail/id/39/iid/486544',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                '4 Hour Ago - กรมประชาสัมพันธ์ PRD',
-                style: TextStyle(fontSize: 14),
-              ),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _newsList.isEmpty
+                      ? const Center(child: Text('No news available'))
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _newsList.length,
+                          itemBuilder: (context, index) {
+                            final news = _newsList[index];
+                            return _buildNewsCard(news);
+                          },
+                        ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildNewsCard(dynamic news) {
+    String imagePath = news['imagePath'] ?? '';
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: imagePath.startsWith('assets/')
+                ? Image.asset(imagePath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                : imagePath.startsWith('http')
+                    ? Image.network(imagePath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                    : Image.file(File(imagePath), fit: BoxFit.cover, width: double.infinity, height: 200),
+          ),
+          const SizedBox(height: 15),
+          Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Text(news['link'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.blue)),
+          const SizedBox(height: 10),
+          Text(news['source'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        ],
       ),
     );
   }

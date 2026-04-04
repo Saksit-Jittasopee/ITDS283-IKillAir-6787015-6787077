@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
-import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
 class AdminNews extends StatefulWidget {
@@ -14,22 +15,46 @@ class AdminNews extends StatefulWidget {
 }
 
 class _AdminNewsState extends State<AdminNews> {
-  List<Map<String, dynamic>> _newsList = [
-    {
-      'id': 1,
-      'title': 'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
-      'link': 'https://www.bbc.com/thai/articles/ckkl7r05z34o',
-      'source': '1 Hour Ago - BBC Thailand',
-      'imagePath': 'assets/images/news/pm2.5.webp',
-    },
-    {
-      'id': 2,
-      'title': 'รัฐบาลออกมาตรการประหยัดพลังงาน พลัส ยกกำลัง 2 ควบคุมราคาสินค้า สั่งผู้ว่าฯ ผ่อนผัน รถส่งน้ำมันวิ่ง 24 ชม.',
-      'link': 'https://www.prd.go.th/th/content/category/detail/id/39/iid/486544',
-      'source': '4 Hour Ago - กรมประชาสัมพันธ์ PRD',
-      'imagePath': 'assets/images/news/reduce_energy.jpg',
+  List<dynamic> _newsList = [];
+  bool _isLoading = true;
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNews();
+  }
+
+  Future<void> fetchNews() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/admin/news'));
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _newsList = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
     }
-  ];
+  }
+
+  Future<void> _deleteNewsApi(int id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/api/admin/news/$id'));
+      if (response.statusCode == 200) {
+        fetchNews();
+      }
+    } catch (e) {}
+  }
+
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,50 +73,48 @@ class _AdminNewsState extends State<AdminNews> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const AdminNotification()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminNotification()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                         child: ValueListenableBuilder<dynamic>(
-                              valueListenable: profileImageNotifier,
-                              builder: (context, imageVal, child) {
-                                ImageProvider imgProvider;
-                                if (imageVal is File) {
-                                  imgProvider = FileImage(imageVal);
-                                } else {
-                                  imgProvider = NetworkImage(imageVal.toString());
-                                }
-                                return CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage: imgProvider,
-                                );
-                              },
-                            ),
+                          valueListenable: profileImageNotifier,
+                          builder: (context, imageVal, child) {
+                            ImageProvider imgProvider;
+                            if (imageVal is File) {
+                              imgProvider = FileImage(imageVal);
+                            } else {
+                              imgProvider = NetworkImage(imageVal.toString());
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imgProvider,
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _newsList.length,
-                itemBuilder: (context, index) {
-                  return _buildNewsCard(_newsList[index], index);
-                },
-              ),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _newsList.isEmpty
+                      ? const Center(child: Text('No news available'))
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _newsList.length,
+                          itemBuilder: (context, index) {
+                            return _buildNewsCard(_newsList[index]);
+                          },
+                        ),
             ],
           ),
         ),
@@ -104,7 +127,9 @@ class _AdminNewsState extends State<AdminNews> {
     );
   }
 
-  Widget _buildNewsCard(Map<String, dynamic> news, int index) {
+  Widget _buildNewsCard(dynamic news) {
+    String displayPath = getImageUrl(news['imagePath']);
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
       child: Column(
@@ -114,9 +139,11 @@ class _AdminNewsState extends State<AdminNews> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: news['imagePath'].startsWith('assets/')
-                    ? Image.asset(news['imagePath'], fit: BoxFit.cover, width: double.infinity, height: 200)
-                    : Image.file(File(news['imagePath']), fit: BoxFit.cover, width: double.infinity, height: 200),
+                child: displayPath.startsWith('assets/')
+                    ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                    : displayPath.startsWith('http')
+                        ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                        : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
               ),
               Positioned(
                 top: 10,
@@ -124,7 +151,7 @@ class _AdminNewsState extends State<AdminNews> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => _openEditNewsPage(context, news, index),
+                      onTap: () => _openEditNewsPage(context, news),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
@@ -133,7 +160,7 @@ class _AdminNewsState extends State<AdminNews> {
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: () => _confirmDeleteNews(context, index),
+                      onTap: () => _confirmDeleteNews(context, news['id']),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
@@ -146,26 +173,17 @@ class _AdminNewsState extends State<AdminNews> {
             ],
           ),
           const SizedBox(height: 15),
-          Text(
-            news['title'],
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          Text(
-            news['link'],
-            style: const TextStyle(fontSize: 14, color: Colors.blue),
-          ),
+          Text(news['link'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.blue)),
           const SizedBox(height: 10),
-          Text(
-            news['source'],
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          Text(news['source'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),
         ],
       ),
     );
   }
 
-  void _confirmDeleteNews(BuildContext context, int index) {
+  void _confirmDeleteNews(BuildContext context, int id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -176,9 +194,7 @@ class _AdminNewsState extends State<AdminNews> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() {
-                _newsList.removeAt(index);
-              });
+              _deleteNewsApi(id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -192,37 +208,21 @@ class _AdminNewsState extends State<AdminNews> {
       context,
       MaterialPageRoute(builder: (context) => const _NewsFormPage()),
     );
-
-    if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        final newId = _newsList.isEmpty ? 1 : _newsList.map((n) => n['id'] as int).reduce((a, b) => a > b ? a : b) + 1;
-        result['id'] = newId;
-        _newsList.add(result);
-      });
-    }
+    if (result == true) fetchNews();
   }
 
-  Future<void> _openEditNewsPage(BuildContext context, Map<String, dynamic> news, int index) async {
+  Future<void> _openEditNewsPage(BuildContext context, dynamic news) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => _NewsFormPage(newsItem: news, index: index),
-      ),
+      MaterialPageRoute(builder: (context) => _NewsFormPage(newsItem: news)),
     );
-
-    if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        _newsList[index] = result;
-      });
-    }
+    if (result == true) fetchNews();
   }
 }
 
 class _NewsFormPage extends StatefulWidget {
-  final Map<String, dynamic>? newsItem;
-  final int? index;
-
-  const _NewsFormPage({this.newsItem, this.index});
+  final dynamic newsItem;
+  const _NewsFormPage({this.newsItem});
 
   @override
   State<_NewsFormPage> createState() => _NewsFormPageState();
@@ -234,6 +234,7 @@ class _NewsFormPageState extends State<_NewsFormPage> {
   late TextEditingController _sourceController;
   String? _imagePath;
   final _formKey = GlobalKey<FormState>();
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
@@ -256,7 +257,6 @@ class _NewsFormPageState extends State<_NewsFormPage> {
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
     if (image != null) {
       setState(() {
         _imagePath = image.path;
@@ -264,10 +264,43 @@ class _NewsFormPageState extends State<_NewsFormPage> {
     }
   }
 
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
+  }
+
+  Future<void> _submitData() async {
+    if (_formKey.currentState!.validate() && _imagePath != null) {
+      bool isEdit = widget.newsItem != null;
+      var uri = Uri.parse(isEdit ? '$baseUrl/api/admin/news/${widget.newsItem['id']}' : '$baseUrl/api/admin/news');
+      var request = http.MultipartRequest(isEdit ? 'PUT' : 'POST', uri);
+
+      request.fields['title'] = _titleController.text;
+      request.fields['link'] = _linkController.text;
+      request.fields['source'] = _sourceController.text;
+
+      if (!_imagePath!.startsWith('http') && !_imagePath!.startsWith('assets/') && !_imagePath!.startsWith('/uploads')) {
+        var pic = await http.MultipartFile.fromPath('image', _imagePath!);
+        request.files.add(pic);
+      }
+
+      try {
+        var response = await request.send();
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          Navigator.pop(context, true);
+        }
+      } catch (e) {}
+    } else if (_imagePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an image')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     bool isEdit = widget.newsItem != null;
+    String displayPath = getImageUrl(_imagePath);
 
     return Scaffold(
       body: SafeArea(
@@ -300,12 +333,14 @@ class _NewsFormPageState extends State<_NewsFormPage> {
                       color: isDark ? Colors.grey[800] : Colors.grey[200],
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: _imagePath != null
+                    child: displayPath.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: _imagePath!.startsWith('assets/')
-                                ? Image.asset(_imagePath!, fit: BoxFit.cover)
-                                : Image.file(File(_imagePath!), fit: BoxFit.cover),
+                            child: displayPath.startsWith('assets/')
+                                ? Image.asset(displayPath, fit: BoxFit.cover)
+                                : displayPath.startsWith('http')
+                                    ? Image.network(displayPath, fit: BoxFit.cover)
+                                    : Image.file(File(displayPath), fit: BoxFit.cover),
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -363,22 +398,7 @@ class _NewsFormPageState extends State<_NewsFormPage> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate() && _imagePath != null) {
-                        final updatedNews = {
-                          'id': isEdit ? widget.newsItem!['id'] : null,
-                          'title': _titleController.text,
-                          'link': _linkController.text,
-                          'source': _sourceController.text,
-                          'imagePath': _imagePath,
-                        };
-                        Navigator.pop(context, updatedNews);
-                      } else if (_imagePath == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please select an image')),
-                        );
-                      }
-                    },
+                    onPressed: _submitData,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
