@@ -34,7 +34,7 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> fetchProducts(String query) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/search/products?q=$query'));
+      final response = await http.get(Uri.parse('$baseUrl/api/search/admin/products?q=$query'));
       if (response.statusCode == 200) {
         setState(() {
           _allProducts = jsonDecode(response.body);

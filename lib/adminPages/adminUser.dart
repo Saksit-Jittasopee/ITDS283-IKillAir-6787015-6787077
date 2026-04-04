@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
@@ -13,17 +15,32 @@ class AdminUser extends StatefulWidget {
 
 class _AdminUserState extends State<AdminUser> {
   final ScrollController _scrollController = ScrollController();
-  
-  List<Map<String, dynamic>> _users = [
-    {'id': 1, 'username': 'Suggus17', 'email': 'chanasorn.chi@student.mahidol.ac.th', 'password': 'password123', 'isAdmin': false, 'isActive': true},
-    {'id': 2, 'username': 'Saksit', 'email': 'saksit.jit@student.mahidol.ac.th', 'password': 'password123', 'isAdmin': true, 'isActive': true},
-    {'id': 3, 'username': 'WISHERCARTs', 'email': 'wishercarts@gmail.com', 'password': 'password123', 'isAdmin': false, 'isActive': false},
-  ];
+  List<dynamic> _users = [];
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers('');
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchUsers(String query) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/search/admin/users?q=$query'));
+      if (response.statusCode == 200) {
+        setState(() {
+          _users = jsonDecode(response.body);
+        });
+      }
+    } catch (e) {
+      print("Error fetching users: $e");
+    }
   }
 
   @override
@@ -75,6 +92,7 @@ class _AdminUserState extends State<AdminUser> {
                   ),
                   const SizedBox(height: 20),
                   TextField(
+                    onChanged: (value) => fetchUsers(value),
                     decoration: InputDecoration(
                       hintText: 'Search users',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -118,7 +136,7 @@ class _AdminUserState extends State<AdminUser> {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             itemCount: _users.length,
                             itemBuilder: (context, index) {
-                              return _buildUserRow(_users[index], index);
+                              return _buildUserRow(_users[index] as Map<String, dynamic>, index);
                             },
                           ),
                         ),
@@ -140,6 +158,12 @@ class _AdminUserState extends State<AdminUser> {
   }
 
   Widget _buildUserRow(Map<String, dynamic> user, int index) {
+    bool isActive = user['isActive'] ?? true;
+    bool isAdmin = user['isAdmin'] ?? false;
+    String username = user['username'] ?? 'Unknown';
+    String email = user['email'] ?? 'Unknown';
+    String password = user['password'] ?? '******';
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15),
       child: Row(
@@ -149,15 +173,15 @@ class _AdminUserState extends State<AdminUser> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Icon(
-                user['isActive'] ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                color: user['isActive'] ? Colors.green : Colors.grey,
+                isActive ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                color: isActive ? Colors.green : Colors.grey,
                 size: 20,
               ),
             ),
           ),
           SizedBox(
             width: 150,
-            child: Text(user['username'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            child: Text(username, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           ),
           SizedBox(
             width: 100,
@@ -165,21 +189,21 @@ class _AdminUserState extends State<AdminUser> {
               alignment: Alignment.centerLeft,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: user['isAdmin'] ? Colors.blue.shade100 : Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
+                decoration: BoxDecoration(color: isAdmin ? Colors.blue.shade100 : Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
                 child: Text(
-                  user['isAdmin'] ? 'Admin' : 'User',
-                  style: TextStyle(fontSize: 12, color: user['isAdmin'] ? Colors.blue : Colors.grey.shade700, fontWeight: FontWeight.bold),
+                  isAdmin ? 'Admin' : 'User',
+                  style: TextStyle(fontSize: 12, color: isAdmin ? Colors.blue : Colors.grey.shade700, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
           ),
           SizedBox(
             width: 250,
-            child: Text(user['email'], style: const TextStyle(fontSize: 14)),
+            child: Text(email, style: const TextStyle(fontSize: 14)),
           ),
           SizedBox(
             width: 120,
-            child: Text(user['password'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            child: Text(password, style: const TextStyle(fontSize: 14, color: Colors.grey)),
           ),
           SizedBox(
             width: 100,
@@ -198,7 +222,7 @@ class _AdminUserState extends State<AdminUser> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _confirmDeleteUser(context, user['username'], index),
+                    onPressed: () => _confirmDeleteUser(context, username, index),
                   ),
                 ],
               ),
@@ -241,7 +265,7 @@ class _AdminUserState extends State<AdminUser> {
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
-        final newId = _users.isEmpty ? 1 : _users.map((u) => u['id'] as int).reduce((a, b) => a > b ? a : b) + 1;
+        final newId = _users.isEmpty ? 1 : _users.map((u) => (u['id'] as int?) ?? 0).reduce((a, b) => a > b ? a : b) + 1;
         result['id'] = newId;
         _users.add(result);
       });
@@ -286,9 +310,9 @@ class _UserFormPageState extends State<_UserFormPage> {
   void initState() {
     super.initState();
     bool isEdit = widget.user != null;
-    _usernameController = TextEditingController(text: isEdit ? widget.user!['username'] : '');
-    _passwordController = TextEditingController(text: isEdit ? widget.user!['password'] : '');
-    _emailController = TextEditingController(text: isEdit ? widget.user!['email'] : '');
+    _usernameController = TextEditingController(text: isEdit ? widget.user!['username']?.toString() ?? '' : '');
+    _passwordController = TextEditingController(text: isEdit ? widget.user!['password']?.toString() ?? '' : '');
+    _emailController = TextEditingController(text: isEdit ? widget.user!['email']?.toString() ?? '' : '');
     _isAdmin = isEdit ? (widget.user!['isAdmin'] ?? false) : false;
     _isActive = isEdit ? (widget.user!['isActive'] ?? true) : true;
   }
