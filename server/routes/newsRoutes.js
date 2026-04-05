@@ -1,7 +1,7 @@
-import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import { getAllNews, createNews, updateNews, deleteNews } from '../controllers/newsController.js';
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const { getAllNews, createNews, updateNews, deleteNews } = require('../Controller/newsController.js');
 
 const router = express.Router();
 
@@ -22,4 +22,4 @@ router.post('/admin/news', upload.single('image'), createNews);
 router.put('/admin/news/:id', upload.single('image'), updateNews);
 router.delete('/admin/news/:id', deleteNews);
 
-export default router;
+module.exports = router;
