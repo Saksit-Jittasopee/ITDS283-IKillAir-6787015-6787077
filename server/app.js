@@ -15,12 +15,14 @@ const authRoutes = require('./routes/authRoutes.js');
 const userRoutes = require('./routes/userRoutes');
 const searchRoutes = require('./routes/searchRoutes.js');
 const notiRoutes = require('./routes/notiRoutes.js');
+const productRoutes = require('./routes/productRoutes.js');
 
 // Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notiRoutes);
+app.use('/api/products', productRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
