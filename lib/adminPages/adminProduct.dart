@@ -17,13 +17,15 @@ class AdminProduct extends StatefulWidget {
 class _AdminProductState extends State<AdminProduct> {
   List<dynamic> _allProducts = [];
   final ScrollController _categoryScrollController = ScrollController();
+  String _selectedCategory = 'All';
+  String _currentQuery = '';
 
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
-    fetchProducts('');
+    fetchProducts('', 'All');
   }
 
   @override
@@ -32,16 +34,57 @@ class _AdminProductState extends State<AdminProduct> {
     super.dispose();
   }
 
-  Future<void> fetchProducts(String query) async {
+  Future<void> fetchProducts(String query, String category) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/search/admin/products?q=$query'));
+      final response = await http.get(Uri.parse('$baseUrl/api/products?q=$query&category=$category'));
       if (response.statusCode == 200) {
         setState(() {
           _allProducts = jsonDecode(response.body);
         });
       }
     } catch (e) {
-      print("Error fetching products: $e");
+      print(e);
+    }
+  }
+
+  Future<void> createProduct(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/admin/products'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 201) {
+        fetchProducts(_currentQuery, _selectedCategory);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> updateProduct(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/admin/products/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 200) {
+        fetchProducts(_currentQuery, _selectedCategory);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> deleteProduct(int id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/api/admin/products/$id'));
+      if (response.statusCode == 200) {
+        fetchProducts(_currentQuery, _selectedCategory);
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -94,7 +137,10 @@ class _AdminProductState extends State<AdminProduct> {
               const SizedBox(height: 20),
               TextField(
                 onChanged: (value) {
-                  fetchProducts(value);
+                  setState(() {
+                    _currentQuery = value;
+                  });
+                  fetchProducts(_currentQuery, _selectedCategory);
                 },
                 decoration: InputDecoration(
                   hintText: 'Search products',
@@ -119,12 +165,12 @@ class _AdminProductState extends State<AdminProduct> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Row(
                       children: [
-                        _buildCategory('All', true),
-                        _buildCategory('Personal Air Purify', false),
-                        _buildCategory('Car Air Purify', false),
-                        _buildCategory('Room Air Purify', false),
-                        _buildCategory('Air Quality Monitor', false),
-                        _buildCategory('Mask', false),
+                        _buildCategory('All'),
+                        _buildCategory('Personal Air Purify'),
+                        _buildCategory('Car Air Purify'),
+                        _buildCategory('Room Air Purify'),
+                        _buildCategory('Air Quality Monitor'),
+                        _buildCategory('Mask'),
                       ],
                     ),
                   ),
@@ -155,10 +201,10 @@ class _AdminProductState extends State<AdminProduct> {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, Map<String, dynamic> product, int index) {
+  Widget _buildProductCard(BuildContext context, dynamic product, int index) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     String name = product['name'] ?? 'Unknown';
-    double price = (product['price'] ?? 0.0).toDouble();
+    double price = double.tryParse(product['price'].toString()) ?? 0.0;
     String? imagePath = product['imagePath'];
 
     return Container(
@@ -231,15 +277,24 @@ class _AdminProductState extends State<AdminProduct> {
     );
   }
 
-  Widget _buildCategory(String title, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue : Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
+  Widget _buildCategory(String title) {
+    bool isSelected = _selectedCategory == title;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCategory = title;
+        });
+        fetchProducts(_currentQuery, _selectedCategory);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(title, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
       ),
-      child: Text(title, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
     );
   }
 
@@ -250,15 +305,11 @@ class _AdminProductState extends State<AdminProduct> {
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        final newId = _allProducts.isEmpty ? 1 : _allProducts.map((p) => p['id'] as int).reduce((a, b) => a > b ? a : b) + 1;
-        result['id'] = newId;
-        _allProducts.add(result);
-      });
+      createProduct(result);
     }
   }
 
-  Future<void> _openEditProductPage(BuildContext context, Map<String, dynamic> product, int index) async {
+  Future<void> _openEditProductPage(BuildContext context, dynamic product, int index) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -271,20 +322,16 @@ class _AdminProductState extends State<AdminProduct> {
 
     if (result != null) {
       if (result is Map<String, dynamic>) {
-        setState(() {
-          _allProducts[index] = result;
-        });
+        updateProduct(product['id'], result);
       } else if (result == 'delete') {
-        setState(() {
-          _allProducts.removeAt(index);
-        });
+        deleteProduct(product['id']);
       }
     }
   }
 }
 
 class _ProductFormPage extends StatefulWidget {
-  final Map<String, dynamic>? product;
+  final dynamic product;
   final int? index;
 
   const _ProductFormPage({this.product, this.index});
@@ -296,16 +343,28 @@ class _ProductFormPage extends StatefulWidget {
 class _ProductFormPageState extends State<_ProductFormPage> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
+  String _selectedCategoryForm = 'Room Air Purify';
   String? _imagePath;
   final _formKey = GlobalKey<FormState>();
+
+  final List<String> _categoryOptions = [
+    'Personal Air Purify',
+    'Car Air Purify',
+    'Room Air Purify',
+    'Air Quality Monitor',
+    'Mask'
+  ];
 
   @override
   void initState() {
     super.initState();
     bool isEditMode = widget.product != null;
-    _nameController = TextEditingController(text: isEditMode ? widget.product!['name'] : '');
-    _priceController = TextEditingController(text: isEditMode ? widget.product!['price'].toString() : '');
-    _imagePath = isEditMode ? widget.product!['imagePath'] : null;
+    _nameController = TextEditingController(text: isEditMode ? widget.product['name'] : '');
+    _priceController = TextEditingController(text: isEditMode ? widget.product['price'].toString() : '');
+    _imagePath = isEditMode ? widget.product['imagePath'] : null;
+    if (isEditMode && widget.product['category'] != null && _categoryOptions.contains(widget.product['category'])) {
+      _selectedCategoryForm = widget.product['category'];
+    }
   }
 
   @override
@@ -366,7 +425,7 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Delete Product?'),
-                              content: Text('Are you sure you want to delete "${widget.product!['name']}"?'),
+                              content: Text('Are you sure you want to delete "${widget.product['name']}"?'),
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
                                 TextButton(
@@ -426,6 +485,23 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                   decoration: _buildInputDecoration(hint: 'Enter product name', isDark: isDark),
                 ),
                 const SizedBox(height: 20),
+                _buildFieldLabel('Category'),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategoryForm,
+                  decoration: _buildInputDecoration(hint: 'Select category', isDark: isDark),
+                  items: _categoryOptions.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedCategoryForm = newValue!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
                 _buildFieldLabel('Price (Baht)'),
                 TextFormField(
                   controller: _priceController,
@@ -444,14 +520,13 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        final updatedProduct = {
-                          'id': isEditMode ? widget.product!['id'] : null,
+                        final payload = {
                           'name': _nameController.text,
                           'price': double.parse(_priceController.text),
-                          'category': isEditMode ? widget.product!['category'] : 'Room Air Purify',
+                          'category': _selectedCategoryForm,
                           'imagePath': _imagePath,
                         };
-                        Navigator.pop(context, updatedProduct);
+                        Navigator.pop(context, payload);
                       }
                     },
                     style: ElevatedButton.styleFrom(

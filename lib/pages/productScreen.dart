@@ -17,13 +17,15 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   List<dynamic> _featuredProducts = [];
   final ScrollController _categoryScrollController = ScrollController();
+  String _selectedCategory = 'All';
+  String _currentQuery = '';
   
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
-    searchProducts('');
+    searchProducts('', 'All');
   }
 
   @override
@@ -32,17 +34,34 @@ class _ProductScreenState extends State<ProductScreen> {
     super.dispose();
   }
 
-  Future<void> searchProducts(String query) async {
+  Future<void> searchProducts(String query, String category) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/search/products?q=$query'));
+      final response = await http.get(Uri.parse('$baseUrl/api/products?q=$query&category=$category'));
       if (response.statusCode == 200) {
         setState(() {
           _featuredProducts = jsonDecode(response.body);
         });
       }
     } catch (e) {
-      print("Error searching products: $e");
+      print(e);
     }
+  }
+
+  void _addToCart(dynamic product) {
+    setState(() {
+      int existingIndex = globalUserCart.indexWhere((item) => item['id'] == product['id']);
+      if (existingIndex >= 0) {
+        globalUserCart[existingIndex]['qty'] += 1;
+      } else {
+        globalUserCart.add({
+          'id': product['id'],
+          'name': product['name'],
+          'price': product['price'],
+          'qty': 1,
+        });
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart'), duration: Duration(seconds: 1)));
   }
 
   @override
@@ -62,29 +81,20 @@ class _ProductScreenState extends State<ProductScreen> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const CartScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
                         },
                         icon: const Icon(Icons.shopping_cart_outlined, size: 28),
                       ),
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                          child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
@@ -95,10 +105,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             } else {
                               imgProvider = NetworkImage(imageVal.toString());
                             }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
+                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
                         ),
                       ),
@@ -108,7 +115,10 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               const SizedBox(height: 20),
               TextField(
-                onChanged: (value) => searchProducts(value),
+                onChanged: (value) {
+                  _currentQuery = value;
+                  searchProducts(_currentQuery, _selectedCategory);
+                },
                 decoration: InputDecoration(
                   hintText: 'Search products',
                   prefixIcon: const Icon(Icons.search),
@@ -134,12 +144,12 @@ class _ProductScreenState extends State<ProductScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Row(
                       children: [
-                        _buildCategory('All', true),
-                        _buildCategory('Personal Air Purify', false),
-                        _buildCategory('Car Air Purify', false),
-                        _buildCategory('Room Air Purify', false),
-                        _buildCategory('Air Quality Monitor', false),
-                        _buildCategory('Mask', false),
+                        _buildCategory('All'),
+                        _buildCategory('Personal Air Purify'),
+                        _buildCategory('Car Air Purify'),
+                        _buildCategory('Room Air Purify'),
+                        _buildCategory('Air Quality Monitor'),
+                        _buildCategory('Mask'),
                       ],
                     ),
                   ),
@@ -159,11 +169,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   itemCount: _featuredProducts.length,
                   itemBuilder: (context, index) {
                     final product = _featuredProducts[index];
-                    return _buildProductCard(
-                      context, 
-                      product['name'] ?? 'Unknown', 
-                      '${product['price']} Baht'
-                    );
+                    return _buildProductCard(context, product);
                   },
                 ),
               ),
@@ -174,19 +180,31 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  Widget _buildCategory(String title, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue : Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
+  Widget _buildCategory(String title) {
+    bool isSelected = _selectedCategory == title;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCategory = title;
+        });
+        searchProducts(_currentQuery, _selectedCategory);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(title, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
       ),
-      child: Text(title, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
     );
   }
 
-  Widget _buildProductCard(BuildContext context, String name, String price) {
+  Widget _buildProductCard(BuildContext context, dynamic product) {
+    String name = product['name'] ?? 'Unknown';
+    String price = '${product['price']} Baht';
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -208,12 +226,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     Text(price, style: const TextStyle(color: Colors.blue, fontSize: 12)),
                     IconButton(
                       icon: const Icon(Icons.add_shopping_cart, size: 16, color: Colors.blue),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CartScreen()),
-                        );
-                      },
+                      onPressed: () => _addToCart(product),
                     ),
                   ],
                 ),
