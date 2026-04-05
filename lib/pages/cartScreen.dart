@@ -1,19 +1,51 @@
 import 'dart:io';
-import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
+import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/paymentScreen.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class CartScreen extends StatelessWidget {
+List<Map<String, dynamic>> globalUserCart = [];
+
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  void _removeItem(int index) {
+    setState(() {
+      globalUserCart.removeAt(index);
+    });
+  }
+
+  void _updateQty(int index, int delta) {
+    setState(() {
+      int currentQty = globalUserCart[index]['qty'] ?? 1;
+      int newQty = currentQty + delta;
+      if (newQty > 0) {
+        globalUserCart[index]['qty'] = newQty;
+      }
+    });
+  }
+
+  double _calculateTotal() {
+    double total = 0;
+    for (var item in globalUserCart) {
+      double price = double.tryParse(item['price'].toString()) ?? 0.0;
+      int qty = item['qty'] ?? 1;
+      total += price * qty;
+    }
+    return total;
+  }
 
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -34,7 +66,10 @@ class CartScreen extends StatelessWidget {
                       const SizedBox(width: 15),
                       const Text(
                         'Cart',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -44,7 +79,9 @@ class CartScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationScreen(),
+                            ),
                           );
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
@@ -52,7 +89,12 @@ class CartScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
                         },
                         child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
@@ -75,65 +117,150 @@ class CartScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 30),
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  border: Border.all(color: isDark ? Colors.grey : Colors.black, width: 1), // ปรับสีขอบให้เข้ากับ Theme
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'HealthPro 101',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '1000.00 Baht',
-                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              _buildQtyBtn(Icons.remove, Colors.blue),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                margin: const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: isDark ? Colors.grey[800] : Colors.grey[200], // ปรับสีพื้นหลังจำนวนสินค้า
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text('1', style: TextStyle(fontSize: 12)),
+              Expanded(
+                child: globalUserCart.isEmpty
+                    ? const Center(child: Text("Your cart is empty"))
+                    : ListView.builder(
+                        itemCount: globalUserCart.length,
+                        itemBuilder: (context, index) {
+                          final item = globalUserCart[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 15),
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isDark ? Colors.grey : Colors.black,
+                                width: 1,
                               ),
-                              _buildQtyBtn(Icons.add, Colors.blue),
-                            ],
-                          ),
-                        ],
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['name'] ?? '',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '${item['price']} Baht',
+                                        style: const TextStyle(
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () => _updateQty(index, -1),
+                                            child: _buildQtyBtn(
+                                              Icons.remove,
+                                              Colors.blue,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 4,
+                                            ),
+                                            margin: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isDark
+                                                  ? Colors.grey[800]
+                                                  : Colors.grey[200],
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              '${item['qty']}',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () => _updateQty(index, 1),
+                                            child: _buildQtyBtn(
+                                              Icons.add,
+                                              Colors.blue,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 28,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _removeItem(index),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    const Icon(Icons.delete_outline, size: 28),
-                  ],
-                ),
               ),
-              const Spacer(),
+              if (globalUserCart.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${_calculateTotal().toStringAsFixed(2)} Baht',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Align(
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PaymentScreen()),
-                        );
-                  },
+                  onPressed: globalUserCart.isEmpty
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentScreen(),
+                            ),
+                          );
+                        },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.blue,
                     side: const BorderSide(color: Colors.blue),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text('Proceed to checkout'),
                 ),

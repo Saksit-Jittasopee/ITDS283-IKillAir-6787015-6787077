@@ -24,7 +24,7 @@ class _AdminNotificationState extends State<AdminNotification> {
 
   Future<void> fetchNotifications() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/admin/notifications'));
+      final response = await http.get(Uri.parse('$baseUrl/api/notifications'));
       if (response.statusCode == 200) {
         setState(() {
           _notifications = jsonDecode(response.body);

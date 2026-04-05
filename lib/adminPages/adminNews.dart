@@ -27,7 +27,7 @@ class _AdminNewsState extends State<AdminNews> {
 
   Future<void> fetchNews() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/admin/news'));
+      final response = await http.get(Uri.parse('$baseUrl/api/news'));
       if (response.statusCode == 200) {
         if (mounted) {
           setState(() {

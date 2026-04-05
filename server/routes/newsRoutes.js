@@ -1,7 +1,8 @@
-import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import { getAllNews, createNews, updateNews, deleteNews } from '../controllers/newsController.js';
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const { getAllNews, createNews, updateNews, deleteNews } = require('../Controller/newsController.js');
+const { verifyToken } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();
 
@@ -17,9 +18,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.get('/news', getAllNews);
-router.get('/admin/news', getAllNews);
-router.post('/admin/news', upload.single('image'), createNews);
-router.put('/admin/news/:id', upload.single('image'), updateNews);
-router.delete('/admin/news/:id', deleteNews);
+router.post('/admin/news', verifyToken, upload.single('image'), createNews);
+router.put('/admin/news/:id', verifyToken, upload.single('image'), updateNews);
+router.delete('/admin/news/:id', verifyToken, deleteNews);
 
-export default router;
+module.exports = router;

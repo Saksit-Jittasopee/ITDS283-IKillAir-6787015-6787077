@@ -1,12 +1,10 @@
-import express from 'express';
-import { searchProducts, searchUsers, searchOrders } from '../controllers/searchController.js';
-
+const express = require('express');
 const router = express.Router();
+const { searchProducts, searchUsers, searchOrders } = require('../Controller/searchController.js');
+const { verifyToken } = require('../middlewares/authMiddleware.js');
 
-// Route สำหรับค้นหา (GET /api/search/...)
 router.get('/products', searchProducts);
-router.get('/admin/products', searchProducts);
-router.get('/admin/users', searchUsers);
-router.get('/admin/orders', searchOrders);
+router.get('/admin/users', verifyToken, searchUsers);
+router.get('/admin/orders', verifyToken, searchOrders);
 
-export default router;
+module.exports = router;

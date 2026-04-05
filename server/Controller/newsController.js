@@ -1,6 +1,6 @@
-import prisma from '../config/db.js';
+const prisma = require('../config/db.js');
 
-export const getAllNews = async (req, res) => {
+const getAllNews = async (req, res) => {
   try {
     const news = await prisma.news.findMany({
       orderBy: { createdAt: 'desc' },
@@ -11,7 +11,7 @@ export const getAllNews = async (req, res) => {
   }
 };
 
-export const createNews = async (req, res) => {
+const createNews = async (req, res) => {
   try {
     const { title, link, source } = req.body;
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -25,7 +25,7 @@ export const createNews = async (req, res) => {
   }
 };
 
-export const updateNews = async (req, res) => {
+const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, link, source } = req.body;
@@ -45,7 +45,7 @@ export const updateNews = async (req, res) => {
   }
 };
 
-export const deleteNews = async (req, res) => {
+const deleteNews = async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.news.delete({
@@ -55,4 +55,11 @@ export const deleteNews = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error deleting news" });
   }
+};
+
+module.exports = {
+  getAllNews,
+  createNews,
+  updateNews,
+  deleteNews
 };
