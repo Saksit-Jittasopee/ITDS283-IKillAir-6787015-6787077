@@ -34,7 +34,7 @@ class _AdminOrderState extends State<AdminOrder> {
 
   Future<void> fetchOrders(String query) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/search/orders?q=$query'));
+      final response = await http.get(Uri.parse('$baseUrl/api/search/admin/orders?q=$query'));
       if (response.statusCode == 200) {
         setState(() {
           _orders = jsonDecode(response.body);

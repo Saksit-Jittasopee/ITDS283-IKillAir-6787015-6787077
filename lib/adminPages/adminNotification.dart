@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -11,26 +13,38 @@ class AdminNotification extends StatefulWidget {
 }
 
 class _AdminNotificationState extends State<AdminNotification> {
-  List<Map<String, dynamic>> _notifications = [
-    {
-      'id': 1,
-      'title': 'A products payout of \$19 has been successful!',
-      'target': 'everyone',
-      'time': '11.00 AM'
-    },
-    {
-      'id': 2,
-      'title': 'Admin dashboard update completed.',
-      'target': 'only admin',
-      'time': '09.30 AM'
-    },
-    {
-      'id': 3,
-      'title': 'Welcome new users to IKillAir!',
-      'target': 'only user',
-      'time': '08.00 AM'
-    },
-  ];
+  List<dynamic> _notifications = [];
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNotifications();
+  }
+
+  Future<void> fetchNotifications() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/admin/notifications'));
+      if (response.statusCode == 200) {
+        setState(() {
+          _notifications = jsonDecode(response.body);
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> deleteNotification(int id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/api/admin/notifications/$id'));
+      if (response.statusCode == 200) {
+        fetchNotifications();
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,20 +77,20 @@ class _AdminNotificationState extends State<AdminNotification> {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                     },
                     child: ValueListenableBuilder<dynamic>(
-                              valueListenable: profileImageNotifier,
-                              builder: (context, imageVal, child) {
-                                ImageProvider imgProvider;
-                                if (imageVal is File) {
-                                  imgProvider = FileImage(imageVal);
-                                } else {
-                                  imgProvider = NetworkImage(imageVal.toString());
-                                }
-                                return CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage: imgProvider,
-                                );
-                              },
-                            ),
+                      valueListenable: profileImageNotifier,
+                      builder: (context, imageVal, child) {
+                        ImageProvider imgProvider;
+                        if (imageVal is File) {
+                          imgProvider = FileImage(imageVal);
+                        } else {
+                          imgProvider = NetworkImage(imageVal.toString());
+                        }
+                        return CircleAvatar(
+                          radius: 20,
+                          backgroundImage: imgProvider,
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -101,7 +115,7 @@ class _AdminNotificationState extends State<AdminNotification> {
     );
   }
 
-  Widget _buildNotificationCard(Map<String, dynamic> noti, int index, bool isDark) {
+  Widget _buildNotificationCard(dynamic noti, int index, bool isDark) {
     IconData targetIcon;
     Color targetColor;
 
@@ -167,7 +181,7 @@ class _AdminNotificationState extends State<AdminNotification> {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                onPressed: () => _confirmDeleteNotification(context, index),
+                onPressed: () => _confirmDeleteNotification(context, noti['id']),
               ),
             ],
           ),
@@ -176,7 +190,7 @@ class _AdminNotificationState extends State<AdminNotification> {
     );
   }
 
-  void _confirmDeleteNotification(BuildContext context, int index) {
+  void _confirmDeleteNotification(BuildContext context, int id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -187,9 +201,7 @@ class _AdminNotificationState extends State<AdminNotification> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() {
-                _notifications.removeAt(index);
-              });
+              deleteNotification(id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -204,36 +216,51 @@ class _AdminNotificationState extends State<AdminNotification> {
       MaterialPageRoute(builder: (context) => const _NotificationFormPage()),
     );
 
-    if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        final newId = _notifications.isEmpty ? 1 : _notifications.map((n) => n['id'] as int).reduce((a, b) => a > b ? a : b) + 1;
-        result['id'] = newId;
-        _notifications.insert(0, result);
-      });
+    if (result != null) {
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/api/admin/notifications'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(result),
+        );
+        if (response.statusCode == 201) {
+          fetchNotifications();
+        }
+      } catch (e) {
+        print(e);
+      }
     }
   }
 
-  Future<void> _openEditNotificationPage(BuildContext context, Map<String, dynamic> noti, int index) async {
+  Future<void> _openEditNotificationPage(BuildContext context, dynamic noti, int index) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => _NotificationFormPage(notification: noti, index: index),
+        builder: (context) => _NotificationFormPage(notification: noti),
       ),
     );
 
-    if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        _notifications[index] = result;
-      });
+    if (result != null) {
+      try {
+        final response = await http.put(
+          Uri.parse('$baseUrl/api/admin/notifications/${noti['id']}'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(result),
+        );
+        if (response.statusCode == 200) {
+          fetchNotifications();
+        }
+      } catch (e) {
+        print(e);
+      }
     }
   }
 }
 
 class _NotificationFormPage extends StatefulWidget {
-  final Map<String, dynamic>? notification;
-  final int? index;
+  final dynamic notification;
 
-  const _NotificationFormPage({this.notification, this.index});
+  const _NotificationFormPage({this.notification});
 
   @override
   State<_NotificationFormPage> createState() => _NotificationFormPageState();
@@ -250,9 +277,9 @@ class _NotificationFormPageState extends State<_NotificationFormPage> {
   void initState() {
     super.initState();
     bool isEdit = widget.notification != null;
-    _titleController = TextEditingController(text: isEdit ? widget.notification!['title'] : '');
-    if (isEdit && _targetOptions.contains(widget.notification!['target'])) {
-      _selectedTarget = widget.notification!['target'];
+    _titleController = TextEditingController(text: isEdit ? widget.notification['title'] : '');
+    if (isEdit && _targetOptions.contains(widget.notification['target'])) {
+      _selectedTarget = widget.notification['target'];
     }
   }
 
@@ -332,13 +359,12 @@ class _NotificationFormPageState extends State<_NotificationFormPage> {
                         final now = DateTime.now();
                         String timeString = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
                         
-                        final updatedNoti = {
-                          'id': isEdit ? widget.notification!['id'] : null,
+                        final payload = {
                           'title': _titleController.text,
                           'target': _selectedTarget,
-                          'time': isEdit ? widget.notification!['time'] : timeString,
+                          'time': isEdit ? widget.notification['time'] : timeString,
                         };
-                        Navigator.pop(context, updatedNoti);
+                        Navigator.pop(context, payload);
                       }
                     },
                     style: ElevatedButton.styleFrom(
