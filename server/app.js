@@ -1,6 +1,3 @@
-// setup
-import searchRoutes from './routes/searchRoutes.js';
-
 require('dotenv').config(); 
 const express = require('express');
 const cors = require('cors');
@@ -16,11 +13,14 @@ app.use(express.urlencoded({ extended: true }));
 // Import Routes
 const authRoutes = require('./routes/authRoutes.js');
 const userRoutes = require('./routes/userRoutes');
+const searchRoutes = requires('./routes/searchRoutes.js');
+const notiRoutes = requires('./routes/notiRoutes.js');
 
 // Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/noti', notiRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
