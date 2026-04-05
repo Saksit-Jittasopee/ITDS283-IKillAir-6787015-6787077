@@ -1,12 +1,42 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
+
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  List<dynamic> _notifications = [];
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNotifications();
+  }
+
+  Future<void> fetchNotifications() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/notifications'));
+      if (response.statusCode == 200) {
+        final List<dynamic> allNoti = jsonDecode(response.body);
+        setState(() {
+          _notifications = allNoti.where((noti) => noti['target'] == 'everyone' || noti['target'] == 'only user').toList();
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // นำ backgroundColor: Colors.white ออก เพื่อให้ใช้สีตาม Theme
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -27,21 +57,19 @@ class NotificationScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: ListView(
+              child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildSectionHeader('TODAY'),
-                  _buildNotiItem(context, Icons.card_membership, 'A products payout of \$19 has been successful!', '11.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(context, Icons.add_circle_outline, 'Bangkok, Thailand AQI at 90 today.', '08.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(context, Icons.shopping_bag_outlined, 'New Product "HealthPro 404" Released Today!', '11.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(context, Icons.public, 'Bangkok, Thailand AQI at 92 today.', '08.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(context, Icons.newspaper, 'Today PM2.5 News! Readmore at https:...', '01.00 AM', Colors.yellow[50]!),
-                  const SizedBox(height: 20),
-                  _buildSectionHeader('YESTERDAY'),
-                  _buildNotiItem(context, Icons.shopping_bag_outlined, 'New Product "HealthPro 101" Released Today!', '11.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(context, Icons.public, 'Bangkok, Thailand AQI at 102 today.', '08.00 AM', Colors.pink[50]!),
-                  _buildNotiItem(context, Icons.newspaper, 'PM2.5 Reach Highest Today! Readmore at https:...', '01.00 AM', Colors.yellow[50]!),
-                ],
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  final noti = _notifications[index];
+                  return _buildNotiItem(
+                    context,
+                    Icons.notifications_active_outlined,
+                    noti['title'] ?? '',
+                    noti['time'] ?? '',
+                    Colors.pink[50]!,
+                  );
+                },
               ),
             ),
           ],
@@ -50,15 +78,7 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      child: Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12, letterSpacing: 1.2)),
-    );
-  }
-
   Widget _buildNotiItem(BuildContext context, IconData icon, String message, String time, Color lightBgColor) {
-    // ปรับสีพื้นหลังไอคอนให้เข้ากับ Dark Mode
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor = isDark ? Colors.grey[800]! : lightBgColor;
 
