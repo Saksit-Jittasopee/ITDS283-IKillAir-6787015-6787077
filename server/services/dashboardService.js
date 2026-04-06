@@ -17,7 +17,7 @@ const getDashboardStats = async () => {
     totalProducts,
     totalSales,
     totalUsers,
-    onlineUsers: 2 // 
+    onlineUsers: 2 // ใส่เลขจำลองไว้ก่อน เพราะระบบตรวจคนออนไลน์แบบ Real-time จริงๆ ต้องใช้ Socket.io
   };
 };
 
