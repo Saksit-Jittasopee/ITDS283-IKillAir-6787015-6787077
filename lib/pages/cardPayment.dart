@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -21,7 +22,7 @@ class CardPaymentScreen extends StatelessWidget {
 
     final data = {
       'orderId': orderId,
-      'username': 'IKillAir User', 
+      'username': usernameNotifier.value, 
       'product': productNames,
       'totalPrice': total,
       'paymentMethod': 'Credit/Debit Card'
@@ -30,7 +31,10 @@ class CardPaymentScreen extends StatelessWidget {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/orders'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}',
+        },
         body: jsonEncode(data),
       );
       if (response.statusCode == 201) {

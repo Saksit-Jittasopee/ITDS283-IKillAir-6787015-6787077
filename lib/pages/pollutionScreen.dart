@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/api/waqi_api.dart';
@@ -29,12 +32,39 @@ class _PollutionScreenState extends State<PollutionScreen> {
   List<dynamic> globalRankings = [];
   bool isGlobalLoading = true;
   bool isDescending = true;
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
     _determinePositionAndFetchData();
     _fetchGlobalData();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _determinePositionAndFetchData() async {
@@ -62,7 +92,6 @@ class _PollutionScreenState extends State<PollutionScreen> {
     }
 
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    
     final data = await WAQIapi.fetchAqiByLocation(position.latitude, position.longitude);
     
     if (mounted) {
@@ -206,36 +235,30 @@ class _PollutionScreenState extends State<PollutionScreen> {
                           children: [
                             IconButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                                );
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                               },
                               icon: const Icon(Icons.notifications_none, size: 28),
                             ),
                             const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                                );
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                               },
-                               child: ValueListenableBuilder<dynamic>(
-                          valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
-                            ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
-                            } else {
-                              imgProvider = NetworkImage(imageVal.toString());
-                            }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
-                          },
-                        ),
+                              child: ValueListenableBuilder<dynamic>(
+                                valueListenable: profileImageNotifier,
+                                builder: (context, imageVal, child) {
+                                  String imagePath = imageVal.toString();
+                                  ImageProvider imgProvider;
+                                  if (imagePath.contains('assets/')) {
+                                    imgProvider = AssetImage(imagePath);
+                                  } else if (imagePath.startsWith('http')) {
+                                    imgProvider = NetworkImage(imagePath);
+                                  } else {
+                                    imgProvider = FileImage(File(imagePath));
+                                  }
+                                  return CircleAvatar(radius: 20, backgroundImage: imgProvider);
+                                },
+                              ),
                             ),
                           ],
                         ),
@@ -287,10 +310,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
         color: isSelected ? Colors.blue : Colors.grey[100],
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Text(
-        label,
-        style: TextStyle(color: isSelected ? Colors.white : Colors.black),
-      ),
+      child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
     );
   }
 
@@ -348,9 +368,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,11 +406,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                     children: [
                       const Text('Rank', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(width: 4),
-                      Icon(
-                        isDescending ? Icons.arrow_upward : Icons.arrow_downward,
-                        color: Colors.white,
-                        size: 14,
-                      ),
+                      Icon(isDescending ? Icons.arrow_upward : Icons.arrow_downward, color: Colors.white, size: 14),
                     ],
                   ),
                 ),
@@ -403,15 +417,9 @@ class _PollutionScreenState extends State<PollutionScreen> {
           ),
         ),
         isGlobalLoading
-            ? const Padding(
-                padding: EdgeInsets.all(40.0),
-                child: Center(child: CircularProgressIndicator()),
-              )
+            ? const Padding(padding: EdgeInsets.all(40.0), child: Center(child: CircularProgressIndicator()))
             : globalRankings.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(40.0),
-                    child: Text('No data available', style: TextStyle(color: Colors.grey)),
-                  )
+                ? const Padding(padding: EdgeInsets.all(40.0), child: Text('No data available', style: TextStyle(color: Colors.grey)))
                 : ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -422,7 +430,6 @@ class _PollutionScreenState extends State<PollutionScreen> {
                       final cityName = cityData['city'] ?? 'Unknown';
                       final countryName = cityData['country'] ?? 'Unknown';
                       final aqi = cityData['aqi'] ?? 0;
-                      
                       return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
                     },
                   ),
@@ -434,9 +441,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
   Widget _buildRankingRow(String rank, String city, String aqi, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
-      ),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade100))),
       child: Row(
         children: [
           Expanded(flex: 1, child: Text(rank, style: const TextStyle(fontSize: 14))),
@@ -447,14 +452,8 @@ class _PollutionScreenState extends State<PollutionScreen> {
               alignment: Alignment.centerRight,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Text(
-                  aqi,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
+                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(15)),
+                child: Text(aqi, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
               ),
             ),
           ),

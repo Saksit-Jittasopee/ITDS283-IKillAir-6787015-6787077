@@ -1,15 +1,55 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
 
-class OurTeamScreen extends StatelessWidget {
+class OurTeamScreen extends StatefulWidget {
   const OurTeamScreen({super.key});
+
+  @override
+  State<OurTeamScreen> createState() => _OurTeamScreenState();
+}
+
+class _OurTeamScreenState extends State<OurTeamScreen> {
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -35,10 +75,7 @@ class OurTeamScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
@@ -50,16 +87,16 @@ class OurTeamScreen extends StatelessWidget {
                         child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
+                            String imagePath = imageVal.toString();
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
+                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
                         ),
                       ),
@@ -69,7 +106,7 @@ class OurTeamScreen extends StatelessWidget {
               ),
               const SizedBox(height: 50),
               _buildMemberRow(
-                context, // ส่ง context ไปด้วยเพื่อเช็ค Theme
+                context,
                 'Chanasorn Chirapongsaton',
                 '6787015',
                 'assets/images/team/Chanasorn.jpg',
@@ -98,7 +135,7 @@ class OurTeamScreen extends StatelessWidget {
       children: [
         const Text('Hello I\'m', style: TextStyle(fontSize: 16)),
         Text(name, style: const TextStyle(fontSize: 16)),
-        Text('Student ID: $id', style: TextStyle(fontSize: 16, color: Colors.grey)), // เปลี่ยนเป็นสีที่เหมาะกับทั้งสอง Theme
+        Text('Student ID: $id', style: TextStyle(fontSize: 16, color: Colors.grey)), 
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -107,7 +144,7 @@ class OurTeamScreen extends StatelessWidget {
             const SizedBox(width: 8),
             const Icon(Icons.camera_alt, color: Colors.pink, size: 28),
             const SizedBox(width: 8),
-            Icon(Icons.code, color: isDark ? Colors.white : Colors.black, size: 28), // เปลี่ยนสีไอคอน Code ให้เข้ากับ Theme
+            Icon(Icons.code, color: isDark ? Colors.white : Colors.black, size: 28),
           ],
         ),
       ],

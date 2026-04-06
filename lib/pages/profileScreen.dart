@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/loginUser.dart';
@@ -51,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Uri.parse('$baseUrl/api/users/profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_SAVED_TOKEN', 
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
         },
         body: jsonEncode(payload),
       );
