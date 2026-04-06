@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 import 'package:ikillair/pages/thankyou.dart';
@@ -8,10 +11,40 @@ import 'package:ikillair/main.dart';
 class CardPaymentScreen extends StatelessWidget {
   const CardPaymentScreen({super.key});
 
+  Future<void> submitOrder(BuildContext context) async {
+    if (globalUserCart.isEmpty) return;
+
+    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    String productNames = globalUserCart.map((e) => "${e['name']} (${e['qty']}x)").join(', ');
+    double total = globalUserCart.fold(0, (sum, item) => sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['qty'] ?? 1)));
+    String orderId = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final data = {
+      'orderId': orderId,
+      'username': 'IKillAir User', 
+      'product': productNames,
+      'totalPrice': total,
+      'paymentMethod': 'Credit/Debit Card'
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/orders'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 201) {
+        globalUserCart.clear();
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const ThankYouScreen()));
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -54,10 +87,7 @@ class CardPaymentScreen extends StatelessWidget {
                             } else {
                               imgProvider = NetworkImage(imageVal.toString());
                             }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
+                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
                         ),
                       ),
@@ -70,7 +100,7 @@ class CardPaymentScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor, // ใช้สี Card ตาม Theme
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
@@ -82,7 +112,7 @@ class CardPaymentScreen extends StatelessWidget {
                     const Center(child: Text('Credit/Debit Card', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
                     const SizedBox(height: 20),
                     _buildLabel('FIRST NAME'),
-                    _buildTextField(context, 'Enter your first name'), // ส่ง context เพื่อเช็ค Theme
+                    _buildTextField(context, 'Enter your first name'), 
                     const SizedBox(height: 15),
                     _buildLabel('LAST NAME'),
                     _buildTextField(context, 'Enter your last name'),
@@ -123,9 +153,7 @@ class CardPaymentScreen extends StatelessWidget {
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ThankYouScreen()));
-                        },
+                        onPressed: () => submitOrder(context),
                         child: const Text('Proceed to checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
@@ -148,10 +176,9 @@ class CardPaymentScreen extends StatelessWidget {
 
   Widget _buildTextField(BuildContext context, String hint) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[800] : Colors.white, // ปรับสีช่องกรอกให้เข้ากับ Theme
+        color: isDark ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
       child: TextField(
