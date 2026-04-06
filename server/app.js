@@ -17,6 +17,7 @@ const searchRoutes = require('./routes/searchRoutes.js');
 const notiRoutes = require('./routes/notiRoutes.js');
 const productRoutes = require('./routes/productRoutes.js');
 const orderRoutes = require('./routes/orderRoutes.js');
+const newsRoutes = require('./routes/newsRoutes.js');
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -25,6 +26,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notiRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/news', newsRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
