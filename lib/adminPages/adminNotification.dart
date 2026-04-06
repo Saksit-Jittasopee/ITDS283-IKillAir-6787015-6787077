@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -20,6 +21,32 @@ class _AdminNotificationState extends State<AdminNotification> {
   void initState() {
     super.initState();
     fetchNotifications();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> fetchNotifications() async {
@@ -79,11 +106,14 @@ class _AdminNotificationState extends State<AdminNotification> {
                     child: ValueListenableBuilder<dynamic>(
                       valueListenable: profileImageNotifier,
                       builder: (context, imageVal, child) {
+                        String imagePath = imageVal.toString();
                         ImageProvider imgProvider;
-                        if (imageVal is File) {
-                          imgProvider = FileImage(imageVal);
+                        if (imagePath.contains('assets/')) {
+                          imgProvider = AssetImage(imagePath);
+                        } else if (imagePath.startsWith('http')) {
+                          imgProvider = NetworkImage(imagePath);
                         } else {
-                          imgProvider = NetworkImage(imageVal.toString());
+                          imgProvider = FileImage(File(imagePath));
                         }
                         return CircleAvatar(
                           radius: 20,
@@ -359,12 +389,13 @@ class _NotificationFormPageState extends State<_NotificationFormPage> {
                         final now = DateTime.now();
                         String timeString = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
                         
-                        final payload = {
+                        final updatedNoti = {
+                          'id': isEdit ? widget.notification!['id'] : null,
                           'title': _titleController.text,
                           'target': _selectedTarget,
-                          'time': isEdit ? widget.notification['time'] : timeString,
+                          'time': isEdit ? widget.notification!['time'] : timeString,
                         };
-                        Navigator.pop(context, payload);
+                        Navigator.pop(context, updatedNoti);
                       }
                     },
                     style: ElevatedButton.styleFrom(

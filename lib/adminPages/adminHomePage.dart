@@ -1,13 +1,54 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
-class AdminHome extends StatelessWidget {
+class AdminHome extends StatefulWidget {
   final Function(int)? onNavigate;
 
   const AdminHome({super.key, this.onNavigate});
+
+  @override
+  State<AdminHome> createState() => _AdminHomeState();
+}
+
+class _AdminHomeState extends State<AdminHome> {
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,11 +89,14 @@ class AdminHome extends StatelessWidget {
                          child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
+                            String imagePath = imageVal.toString();
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(
                               radius: 20,
@@ -72,7 +116,7 @@ class AdminHome extends StatelessWidget {
                   const Text('Products Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
                   GestureDetector(
                     onTap: () {
-                      if (onNavigate != null) onNavigate!(1);
+                      if (widget.onNavigate != null) widget.onNavigate!(1);
                     },
                     child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ),
@@ -103,7 +147,7 @@ class AdminHome extends StatelessWidget {
                   const Text('Users Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
                   GestureDetector(
                     onTap: () {
-                      if (onNavigate != null) onNavigate!(2); // เปลี่ยนไปแท็บ Users (index 2)
+                      if (widget.onNavigate != null) widget.onNavigate!(2); 
                     },
                     child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ),
