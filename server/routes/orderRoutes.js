@@ -5,12 +5,17 @@ const {
   updateOrder,
   deleteOrder
 } = require('../controllers/orderController.js');
+const { verifyToken } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();
 
-router.get('/admin/orders', getOrders);
-router.post('/admin/orders', createOrder);
-router.put('/admin/orders/:id', updateOrder);
-router.delete('/admin/orders/:id', deleteOrder);
+// Users
+router.post('/', createOrder);
+
+// Admin
+router.get('/admin', verifyToken, getOrders);
+router.post('/admin', verifyToken, createOrder);
+router.put('/admin/:id', verifyToken, updateOrder);
+router.delete('/admin/:id', verifyToken, deleteOrder);
 
 module.exports = router;

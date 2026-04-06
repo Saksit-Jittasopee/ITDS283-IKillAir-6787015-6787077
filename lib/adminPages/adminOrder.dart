@@ -33,7 +33,7 @@ class _AdminOrderState extends State<AdminOrder> {
 
   Future<void> fetchOrders(String query) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/admin/orders?q=$query'));
+      final response = await http.get(Uri.parse('$baseUrl/api/orders/admin?q=$query'));
       if (response.statusCode == 200) {
         setState(() {
           _orders = jsonDecode(response.body);
@@ -47,7 +47,7 @@ class _AdminOrderState extends State<AdminOrder> {
   Future<void> createOrder(Map<String, dynamic> data) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/admin/orders'),
+        Uri.parse('$baseUrl/api/orders/admin'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(data),
       );
@@ -62,7 +62,7 @@ class _AdminOrderState extends State<AdminOrder> {
   Future<void> updateOrder(int id, Map<String, dynamic> data) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/api/admin/orders/$id'),
+        Uri.parse('$baseUrl/api/orders/admin/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(data),
       );
@@ -76,7 +76,7 @@ class _AdminOrderState extends State<AdminOrder> {
 
   Future<void> deleteOrder(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/admin/orders/$id'));
+      final response = await http.delete(Uri.parse('$baseUrl/api/orders/admin/$id'));
       if (response.statusCode == 200) {
         fetchOrders(_currentQuery);
       }
