@@ -18,11 +18,17 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  
+  int _totalProducts = 0;
+  double _totalSales = 0.0;
+  int _totalUsers = 0;
+  int _activeUsers = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchUserProfile();
+    _fetchDashboardStats();
   }
 
   Future<void> _fetchUserProfile() async {
@@ -43,6 +49,25 @@ class _AdminHomeState extends State<AdminHome> {
           if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
             profileImageNotifier.value = data['imagePath'];
           }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _fetchDashboardStats() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/dashboard/admin'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            _totalProducts = data['totalProducts'] ?? 0;
+            _totalSales = double.tryParse(data['totalSales'].toString()) ?? 0.0;
+            _totalUsers = data['totalUsers'] ?? 0;
+            _activeUsers = data['activeUsers'] ?? 0;
+          });
         }
       }
     } catch (e) {
@@ -126,7 +151,7 @@ class _AdminHomeState extends State<AdminHome> {
               _buildStatCard(
                 context,
                 'Products Available',
-                '71 Products',
+                '$_totalProducts Products',
                 Icons.inventory_2,
                 Colors.orange.shade100,
                 Colors.orange,
@@ -135,7 +160,7 @@ class _AdminHomeState extends State<AdminHome> {
               _buildStatCard(
                 context,
                 'Total Product Sales',
-                '89,000 Baht',
+                '${_totalSales.toStringAsFixed(2)} Baht',
                 Icons.show_chart,
                 Colors.green.shade100,
                 Colors.green,
@@ -173,7 +198,7 @@ class _AdminHomeState extends State<AdminHome> {
                           children: [
                             Text('Total Users', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 14)),
                             const SizedBox(height: 8),
-                            const Text('3', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                            Text('$_totalUsers', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         Container(
@@ -188,7 +213,7 @@ class _AdminHomeState extends State<AdminHome> {
                       children: [
                         const Icon(Icons.trending_up, color: Colors.teal, size: 16),
                         const SizedBox(width: 8),
-                        Text('2 Users currently online', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 12)),
+                        Text('$_activeUsers Active users', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
