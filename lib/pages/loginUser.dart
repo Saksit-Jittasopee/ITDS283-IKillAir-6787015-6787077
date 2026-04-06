@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:ikillair/main.dart'; 
 import 'package:ikillair/pages/createAccount.dart';
 import 'package:ikillair/pages/forgotPassword1.dart';
 
@@ -14,6 +18,41 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    
+    final payload = {
+      'email': _emailController.text,
+      'password': _passwordController.text,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        bool isAdmin = data['user']['role'] == true;
+        usernameNotifier.value = data['user']['username'];
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainContainer(isAdmin: isAdmin)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'] ?? 'Login failed')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error connecting to server')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,47 +66,20 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  'Sign in to continue',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
+                const Text('Sign in to continue', style: TextStyle(fontSize: 14, color: Colors.grey)),
                 const SizedBox(height: 8),
-                const Text(
-                  'Welcome back',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
+                const Text('Welcome back', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
                     hintText: 'Email Address',
                     hintStyle: const TextStyle(color: Colors.grey),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
-                      horizontal: 16.0,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: const BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: BorderSide(color: Colors.grey.shade400)),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.isEmpty ? 'Please enter your email' : null,
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
@@ -76,25 +88,11 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: InputDecoration(
                     hintText: 'Password',
                     hintStyle: const TextStyle(color: Colors.grey),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
-                      horizontal: 16.0,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: const BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: BorderSide(color: Colors.grey.shade400)),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.isEmpty ? 'Please enter your password' : null,
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -102,15 +100,9 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const forgotPassword1()),
-                      );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const forgotPassword1()));
                       },
-                      child: const Text(
-                        'Forgot your password?',
-                        style: TextStyle(color: Colors.blue),
-                      ),
+                      child: const Text('Forgot your password?', style: TextStyle(color: Colors.blue)),
                     ),
                   ],
                 ),
@@ -123,48 +115,22 @@ class _LoginPageState extends State<LoginPage> {
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
-                        );
-                      }
-                    },
-                    child: const Text(
-                      'SIGN IN',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    onPressed: _login,
+                    child: const Text('SIGN IN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Don't have an account?",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                      TextButton(
+                    const Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
+                    TextButton(
                       onPressed: () {
-                         Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CreateAccount()),
-                      );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateAccount()));
                       },
-                      child: const Text(
-                        'Sign up',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: const Text('Sign up', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

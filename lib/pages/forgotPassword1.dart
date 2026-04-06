@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:ikillair/pages/forgotPassword2.dart';
 
 class forgotPassword1 extends StatefulWidget {
@@ -11,6 +14,33 @@ class forgotPassword1 extends StatefulWidget {
 class _forgotPassword1State extends State<forgotPassword1> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
+
+  Future<void> _verifyEmail() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/auth/verify-email'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': _emailController.text}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => forgotPassword2(email: _emailController.text)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'] ?? 'Email not found')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error connecting to server')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,19 +64,12 @@ class _forgotPassword1State extends State<forgotPassword1> {
                 const SizedBox(height: 30),
                 const Text(
                   'Forgot your password?',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 12),
                 const Text(
                   'Please enter your email',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
@@ -54,18 +77,9 @@ class _forgotPassword1State extends State<forgotPassword1> {
                   decoration: InputDecoration(
                     hintText: 'Email Address',
                     hintStyle: TextStyle(color: Colors.grey.shade400),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 18.0,
-                      horizontal: 16.0,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0), borderSide: BorderSide(color: Colors.grey.shade300)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0), borderSide: BorderSide(color: Colors.grey.shade300)),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -83,29 +97,10 @@ class _forgotPassword1State extends State<forgotPassword1> {
                       backgroundColor: const Color(0xFF007BFF),
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
-                        );
-                      } else{
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const forgotPassword2()),
-                      );
-                      } 
-                    },
-                    child: const Text(
-                      'CONFIRM',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    onPressed: _verifyEmail,
+                    child: const Text('CONFIRM', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
