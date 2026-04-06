@@ -11,6 +11,7 @@ import 'package:ikillair/pages/newsScreen.dart';
 import 'package:ikillair/pages/pollutionScreen.dart';
 import 'package:ikillair/pages/weatherScreen.dart';
 import 'package:ikillair/pages/productScreen.dart';
+import 'package:ikillair/pages/loginUser.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('/assets/images/team/Saksit.jpg');
@@ -37,8 +38,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: currentMode,
-          // เปลี่ยนตรงนี้เป็น true เพื่อเข้าสู่โหมด Admin
-          home: const MainContainer(isAdmin: true),
+          home: const LoginPage(),
         );
       },
     );
