@@ -7,6 +7,13 @@ const getDashboardStats = async () => {
     where: { role: false }
   });
 
+  const activeUsers = await prisma.useradmin.count({
+    where: { 
+      role: false,
+      status: true 
+    }
+  });
+
   const orders = await prisma.order.findMany({
     select: { totalPrice: true }
   });
@@ -17,7 +24,7 @@ const getDashboardStats = async () => {
     totalProducts,
     totalSales,
     totalUsers,
-    onlineUsers: 2 // ใส่เลขจำลองไว้ก่อน เพราะระบบตรวจคนออนไลน์แบบ Real-time จริงๆ ต้องใช้ Socket.io
+    activeUsers
   };
 };
 

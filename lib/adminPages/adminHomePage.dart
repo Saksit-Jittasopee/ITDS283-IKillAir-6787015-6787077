@@ -22,7 +22,7 @@ class _AdminHomeState extends State<AdminHome> {
   int _totalProducts = 0;
   double _totalSales = 0.0;
   int _totalUsers = 0;
-  int _onlineUsers = 0;
+  int _activeUsers = 0;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _AdminHomeState extends State<AdminHome> {
 
   Future<void> _fetchDashboardStats() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/dashboard'));
+      final response = await http.get(Uri.parse('$baseUrl/api/dashboard/admin'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -66,7 +66,7 @@ class _AdminHomeState extends State<AdminHome> {
             _totalProducts = data['totalProducts'] ?? 0;
             _totalSales = double.tryParse(data['totalSales'].toString()) ?? 0.0;
             _totalUsers = data['totalUsers'] ?? 0;
-            _onlineUsers = data['onlineUsers'] ?? 0;
+            _activeUsers = data['activeUsers'] ?? 0;
           });
         }
       }
@@ -213,7 +213,7 @@ class _AdminHomeState extends State<AdminHome> {
                       children: [
                         const Icon(Icons.trending_up, color: Colors.teal, size: 16),
                         const SizedBox(width: 8),
-                        Text('$_onlineUsers Users currently online', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 12)),
+                        Text('$_activeUsers Active users', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
