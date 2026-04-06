@@ -37,7 +37,7 @@ class _AdminNotificationState extends State<AdminNotification> {
 
   Future<void> deleteNotification(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/admin/notifications/$id'));
+      final response = await http.delete(Uri.parse('$baseUrl/api/notifications/admin/$id'));
       if (response.statusCode == 200) {
         fetchNotifications();
       }
@@ -219,7 +219,7 @@ class _AdminNotificationState extends State<AdminNotification> {
     if (result != null) {
       try {
         final response = await http.post(
-          Uri.parse('$baseUrl/api/admin/notifications'),
+          Uri.parse('$baseUrl/api/notifications/admin'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(result),
         );
@@ -243,7 +243,7 @@ class _AdminNotificationState extends State<AdminNotification> {
     if (result != null) {
       try {
         final response = await http.put(
-          Uri.parse('$baseUrl/api/admin/notifications/${noti['id']}'),
+          Uri.parse('$baseUrl/api/notifications/admin/${noti['id']}'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(result),
         );
