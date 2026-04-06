@@ -10,9 +10,9 @@ const { verifyToken } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();
 
-router.get('/products', getProducts);
-router.post('/admin/products', verifyToken, createProduct);
-router.put('/admin/products/:id', verifyToken, updateProduct);
-router.delete('/admin/products/:id', verifyToken, deleteProduct);
+router.get('/', getProducts);
+router.post('/admin', verifyToken, createProduct);
+router.put('/admin/:id', verifyToken, updateProduct);
+router.delete('/admin/:id', verifyToken, deleteProduct);
 
 module.exports = router;

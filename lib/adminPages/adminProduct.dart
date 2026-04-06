@@ -50,7 +50,7 @@ class _AdminProductState extends State<AdminProduct> {
   Future<void> createProduct(Map<String, dynamic> data) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/admin/products'),
+        Uri.parse('$baseUrl/api/products/admin'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(data),
       );
@@ -65,7 +65,7 @@ class _AdminProductState extends State<AdminProduct> {
   Future<void> updateProduct(int id, Map<String, dynamic> data) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/api/admin/products/$id'),
+        Uri.parse('$baseUrl/api/products/admin/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(data),
       );
@@ -79,7 +79,7 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> deleteProduct(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/admin/products/$id'));
+      final response = await http.delete(Uri.parse('$baseUrl/api/products/admin/$id'));
       if (response.statusCode == 200) {
         fetchProducts(_currentQuery, _selectedCategory);
       }

@@ -43,7 +43,7 @@ class _AdminNewsState extends State<AdminNews> {
 
   Future<void> _deleteNewsApi(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/admin/news/$id'));
+      final response = await http.delete(Uri.parse('$baseUrl/api/news/admin/$id'));
       if (response.statusCode == 200) {
         fetchNews();
       }
@@ -273,7 +273,7 @@ class _NewsFormPageState extends State<_NewsFormPage> {
   Future<void> _submitData() async {
     if (_formKey.currentState!.validate() && _imagePath != null) {
       bool isEdit = widget.newsItem != null;
-      var uri = Uri.parse(isEdit ? '$baseUrl/api/admin/news/${widget.newsItem['id']}' : '$baseUrl/api/admin/news');
+      var uri = Uri.parse(isEdit ? '$baseUrl/api/news/admin/${widget.newsItem['id']}' : '$baseUrl/api/news/admin');
       var request = http.MultipartRequest(isEdit ? 'PUT' : 'POST', uri);
 
       request.fields['title'] = _titleController.text;
