@@ -20,6 +20,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = true;
   List<dynamic> topCities = [];
+  
+  List<dynamic> _newsList = [];
+  bool _isNewsLoading = true;
+  
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
@@ -27,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _fetchTopCities();
     _fetchUserProfile();
+    _fetchNews();
   }
 
   Future<void> _fetchUserProfile() async {
@@ -65,6 +70,28 @@ class _HomeScreenState extends State<HomeScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchNews() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/news'));
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _newsList = jsonDecode(response.body);
+            _isNewsLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isNewsLoading = false);
+    }
+  }
+
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
   }
 
   Color _getAqiColor(int aqi) {
@@ -166,25 +193,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 15),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: Image.network('/assets/images/news/pm2.5.webp', fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                'ส่องค่าฝุ่นพิษ PM2.5 สัปดาห์นี้ (6-11 มี.ค.) หลายจังหวัดยังน่าเป็นห่วง',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'https://www.bbc.com/thai/articles/ckkl7r05z34o',
-                style: TextStyle(fontSize: 12),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                '1 Hour Ago - BBC Thailand',
-                style: TextStyle(fontSize: 12),
-              ),
+              _isNewsLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _newsList.isEmpty
+                      ? const Text('No news available', style: TextStyle(color: Colors.grey))
+                      : _buildLatestNewsCard(_newsList[0]),
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -227,6 +240,30 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLatestNewsCard(dynamic news) {
+    String displayPath = getImageUrl(news['imagePath']);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: displayPath.startsWith('assets/')
+              ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+              : displayPath.startsWith('http')
+                  ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                  : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
+        ),
+        const SizedBox(height: 15),
+        Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Text(news['link'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.blue)),
+        const SizedBox(height: 10),
+        Text(news['source'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
     );
   }
 
