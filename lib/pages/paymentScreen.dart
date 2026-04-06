@@ -1,10 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/cardPayment.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 import 'package:ikillair/pages/qrCodePayment.dart';
+import 'package:ikillair/pages/cartScreen.dart'; 
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
@@ -15,11 +19,45 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   int _selectedMethod = 0;
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    String productNames = globalUserCart.isEmpty ? 'No items' : globalUserCart.map((e) => "${e['name']} (${e['qty']}x)").join(', ');
+    double total = globalUserCart.fold(0, (sum, item) => sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['qty'] ?? 1)));
+
     return Scaffold(
-      // นำ backgroundColor: Colors.white ออก
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -44,34 +82,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                         child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
+                            String imagePath = imageVal.toString();
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
+                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
                         ),
                       ),
@@ -84,11 +116,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor, // เปลี่ยนให้ปรับตาม Theme
+                  color: Theme.of(context).cardColor, 
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,9 +127,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     const Divider(color: Colors.grey, thickness: 1, height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('HealthPro 101 (1x)', style: TextStyle(fontWeight: FontWeight.w500)),
-                        Text('1000.00 Baht', style: TextStyle(fontWeight: FontWeight.bold)),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            productNames, 
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        ),
+                        const SizedBox(width: 10),
+                        Text('${total.toStringAsFixed(2)} Baht', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 30),
@@ -107,9 +146,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     const Divider(color: Colors.grey, thickness: 1, height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Price', style: TextStyle(fontWeight: FontWeight.w500)),
-                        Text('1000.00 Baht', style: TextStyle(fontWeight: FontWeight.bold)),
+                      children: [
+                        const Text('Price', style: TextStyle(fontWeight: FontWeight.w500)),
+                        Text('${total.toStringAsFixed(2)} Baht', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 30),
@@ -130,9 +169,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         const Text('Credit/Debit Card', style: TextStyle(fontWeight: FontWeight.w500)),
                       ],
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 45, bottom: 10),
-                    ),
+                    const Padding(padding: EdgeInsets.only(left: 45, bottom: 10)),
                     Row(
                       children: [
                         Radio(
@@ -148,9 +185,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         const Text('Promptpay', style: TextStyle(fontWeight: FontWeight.w500)),
                       ],
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 45, bottom: 20),
-                    ),
+                    const Padding(padding: EdgeInsets.only(left: 45, bottom: 20)),
                     SizedBox(
                       width: double.infinity,
                       height: 50,

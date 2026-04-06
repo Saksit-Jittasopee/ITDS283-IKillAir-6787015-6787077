@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/paymentScreen.dart';
@@ -15,6 +18,39 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   void _removeItem(int index) {
     setState(() {
       globalUserCart.removeAt(index);
@@ -66,10 +102,7 @@ class _CartScreenState extends State<CartScreen> {
                       const SizedBox(width: 15),
                       const Text(
                         'Cart',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -77,38 +110,28 @@ class _CartScreenState extends State<CartScreen> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationScreen(),
-                            ),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProfileScreen(),
-                            ),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                         child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
+                            String imagePath = imageVal.toString();
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
+                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
                         ),
                       ),
@@ -128,72 +151,43 @@ class _CartScreenState extends State<CartScreen> {
                             margin: const EdgeInsets.only(bottom: 15),
                             padding: const EdgeInsets.all(15),
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isDark ? Colors.grey : Colors.black,
-                                width: 1,
-                              ),
+                              border: Border.all(color: isDark ? Colors.grey : Colors.black, width: 1),
                               borderRadius: BorderRadius.circular(15),
                             ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item['name'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
                                         '${item['price']} Baht',
-                                        style: const TextStyle(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
                                       ),
                                       const SizedBox(height: 12),
                                       Row(
                                         children: [
                                           GestureDetector(
                                             onTap: () => _updateQty(index, -1),
-                                            child: _buildQtyBtn(
-                                              Icons.remove,
-                                              Colors.blue,
-                                            ),
+                                            child: _buildQtyBtn(Icons.remove, Colors.blue),
                                           ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 4,
-                                            ),
-                                            margin: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                            ),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                            margin: const EdgeInsets.symmetric(horizontal: 8),
                                             decoration: BoxDecoration(
-                                              color: isDark
-                                                  ? Colors.grey[800]
-                                                  : Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
+                                              color: isDark ? Colors.grey[800] : Colors.grey[200],
+                                              borderRadius: BorderRadius.circular(4),
                                             ),
-                                            child: Text(
-                                              '${item['qty']}',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                            ),
+                                            child: Text('${item['qty']}', style: const TextStyle(fontSize: 12)),
                                           ),
                                           GestureDetector(
                                             onTap: () => _updateQty(index, 1),
-                                            child: _buildQtyBtn(
-                                              Icons.add,
-                                              Colors.blue,
-                                            ),
+                                            child: _buildQtyBtn(Icons.add, Colors.blue),
                                           ),
                                         ],
                                       ),
@@ -201,11 +195,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    size: 28,
-                                    color: Colors.red,
-                                  ),
+                                  icon: const Icon(Icons.delete_outline, size: 28, color: Colors.red),
                                   onPressed: () => _removeItem(index),
                                 ),
                               ],
@@ -220,21 +210,8 @@ class _CartScreenState extends State<CartScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Total:',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '${_calculateTotal().toStringAsFixed(2)} Baht',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
+                      const Text('Total:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('${_calculateTotal().toStringAsFixed(2)} Baht', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
                     ],
                   ),
                 ),
@@ -244,23 +221,13 @@ class _CartScreenState extends State<CartScreen> {
                   onPressed: globalUserCart.isEmpty
                       ? null
                       : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PaymentScreen(),
-                            ),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentScreen()));
                         },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.blue,
                     side: const BorderSide(color: Colors.blue),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   child: const Text('Proceed to checkout'),
                 ),

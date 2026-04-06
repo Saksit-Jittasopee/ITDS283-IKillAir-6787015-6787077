@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -17,11 +18,13 @@ class _AdminUserState extends State<AdminUser> {
   final ScrollController _scrollController = ScrollController();
   List<dynamic> _users = [];
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String _currentQuery = '';
 
   @override
   void initState() {
     super.initState();
     fetchUsers('');
+    _fetchUserProfile();
   }
 
   @override
@@ -30,16 +33,82 @@ class _AdminUserState extends State<AdminUser> {
     super.dispose();
   }
 
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        if (mounted) {
+          if (data['username'] != null) {
+            usernameNotifier.value = data['username'];
+          }
+          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['imagePath'];
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<void> fetchUsers(String query) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/search/admin/users?q=$query'));
+      final response = await http.get(Uri.parse('$baseUrl/api/users/admin?q=$query'));
       if (response.statusCode == 200) {
         setState(() {
           _users = jsonDecode(response.body);
         });
       }
     } catch (e) {
-      print("Error fetching users: $e");
+      print(e);
+    }
+  }
+
+  Future<void> createUser(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/users/admin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 201) {
+        fetchUsers(_currentQuery);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> updateUser(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/users/admin/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 200) {
+        fetchUsers(_currentQuery);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> deleteUser(int id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/api/users/admin/$id'));
+      if (response.statusCode == 200) {
+        fetchUsers(_currentQuery);
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -73,11 +142,14 @@ class _AdminUserState extends State<AdminUser> {
                             child: ValueListenableBuilder<dynamic>(
                               valueListenable: profileImageNotifier,
                               builder: (context, imageVal, child) {
+                                String imagePath = imageVal.toString();
                                 ImageProvider imgProvider;
-                                if (imageVal is File) {
-                                  imgProvider = FileImage(imageVal);
+                                if (imagePath.contains('assets/')) {
+                                  imgProvider = AssetImage(imagePath);
+                                } else if (imagePath.startsWith('http')) {
+                                  imgProvider = NetworkImage(imagePath);
                                 } else {
-                                  imgProvider = NetworkImage(imageVal.toString());
+                                  imgProvider = FileImage(File(imagePath));
                                 }
                                 return CircleAvatar(
                                   radius: 20,
@@ -92,7 +164,10 @@ class _AdminUserState extends State<AdminUser> {
                   ),
                   const SizedBox(height: 20),
                   TextField(
-                    onChanged: (value) => fetchUsers(value),
+                    onChanged: (value) {
+                      _currentQuery = value;
+                      fetchUsers(_currentQuery);
+                    },
                     decoration: InputDecoration(
                       hintText: 'Search users',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -136,7 +211,7 @@ class _AdminUserState extends State<AdminUser> {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             itemCount: _users.length,
                             itemBuilder: (context, index) {
-                              return _buildUserRow(_users[index] as Map<String, dynamic>, index);
+                              return _buildUserRow(_users[index], index);
                             },
                           ),
                         ),
@@ -157,12 +232,12 @@ class _AdminUserState extends State<AdminUser> {
     );
   }
 
-  Widget _buildUserRow(Map<String, dynamic> user, int index) {
-    bool isActive = user['isActive'] ?? true;
-    bool isAdmin = user['isAdmin'] ?? false;
+  Widget _buildUserRow(dynamic user, int index) {
+    bool isActive = user['status'] ?? true;
+    bool isAdmin = user['role'] ?? false;
     String username = user['username'] ?? 'Unknown';
     String email = user['email'] ?? 'Unknown';
-    String password = user['password'] ?? '******';
+    String password = '******';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15),
@@ -222,7 +297,7 @@ class _AdminUserState extends State<AdminUser> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _confirmDeleteUser(context, username, index),
+                    onPressed: () => _confirmDeleteUser(context, user),
                   ),
                 ],
               ),
@@ -233,20 +308,18 @@ class _AdminUserState extends State<AdminUser> {
     );
   }
 
-  void _confirmDeleteUser(BuildContext context, String username, int index) {
+  void _confirmDeleteUser(BuildContext context, dynamic user) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User?'),
-        content: Text('Are you sure you want to delete user "$username"?'),
+        content: Text('Are you sure you want to delete user "${user['username']}"?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() {
-                _users.removeAt(index);
-              });
+              deleteUser(user['id']);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -264,35 +337,28 @@ class _AdminUserState extends State<AdminUser> {
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        final newId = _users.isEmpty ? 1 : _users.map((u) => (u['id'] as int?) ?? 0).reduce((a, b) => a > b ? a : b) + 1;
-        result['id'] = newId;
-        _users.add(result);
-      });
+      createUser(result);
     }
   }
 
-  Future<void> _openEditUserPage(BuildContext context, Map<String, dynamic> user, int index) async {
+  Future<void> _openEditUserPage(BuildContext context, dynamic user, int index) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => _UserFormPage(user: user, index: index),
+        builder: (context) => _UserFormPage(user: user),
       ),
     );
 
-    if (result != null) {
-      setState(() {
-        _users[index] = result;
-      });
+    if (result != null && result is Map<String, dynamic>) {
+      updateUser(user['id'], result);
     }
   }
 }
 
 class _UserFormPage extends StatefulWidget {
-  final Map<String, dynamic>? user;
-  final int? index;
+  final dynamic user;
 
-  const _UserFormPage({this.user, this.index});
+  const _UserFormPage({this.user});
 
   @override
   State<_UserFormPage> createState() => _UserFormPageState();
@@ -310,11 +376,11 @@ class _UserFormPageState extends State<_UserFormPage> {
   void initState() {
     super.initState();
     bool isEdit = widget.user != null;
-    _usernameController = TextEditingController(text: isEdit ? widget.user!['username']?.toString() ?? '' : '');
-    _passwordController = TextEditingController(text: isEdit ? widget.user!['password']?.toString() ?? '' : '');
-    _emailController = TextEditingController(text: isEdit ? widget.user!['email']?.toString() ?? '' : '');
-    _isAdmin = isEdit ? (widget.user!['isAdmin'] ?? false) : false;
-    _isActive = isEdit ? (widget.user!['isActive'] ?? true) : true;
+    _usernameController = TextEditingController(text: isEdit ? widget.user['username']?.toString() ?? '' : '');
+    _passwordController = TextEditingController(text: '');
+    _emailController = TextEditingController(text: isEdit ? widget.user['email']?.toString() ?? '' : '');
+    _isAdmin = isEdit ? (widget.user['role'] ?? false) : false;
+    _isActive = isEdit ? (widget.user['status'] ?? true) : true;
   }
 
   @override
@@ -381,8 +447,9 @@ class _UserFormPageState extends State<_UserFormPage> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  validator: (value) => value!.isEmpty ? 'Please enter password' : null,
+                  validator: (value) => (!isEdit && value!.isEmpty) ? 'Please enter password' : null,
                   decoration: InputDecoration(
+                    hintText: isEdit ? 'Leave blank to keep current password' : '',
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
@@ -438,15 +505,14 @@ class _UserFormPageState extends State<_UserFormPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        final updatedUser = {
-                          'id': isEdit ? widget.user!['id'] : null,
+                        final payload = {
                           'username': _usernameController.text,
                           'email': _emailController.text,
                           'password': _passwordController.text,
                           'isAdmin': _isAdmin,
                           'isActive': _isActive,
                         };
-                        Navigator.pop(context, updatedUser);
+                        Navigator.pop(context, payload);
                       }
                     },
                     style: ElevatedButton.styleFrom(
