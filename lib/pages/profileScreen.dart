@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/loginUser.dart';
@@ -15,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notification = true;
   late TextEditingController _usernameController;
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
@@ -34,6 +37,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     
     if (image != null) {
       profileImageNotifier.value = image.path;
+    }
+  }
+
+  Future<void> _updateProfile() async {
+    try {
+      final payload = {
+        'username': _usernameController.text,
+        'imagePath': profileImageNotifier.value,
+      };
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_SAVED_TOKEN', 
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        usernameNotifier.value = _usernameController.text;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
+        Navigator.popUntil(context, (route) => route.isFirst);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update profile')));
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -99,9 +130,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildFieldLabel('Username'),
               TextField(
                 controller: _usernameController,
-                onChanged: (value) {
-                  usernameNotifier.value = value;
-                },
                 decoration: InputDecoration(
                   suffixIcon: const Icon(Icons.edit_outlined),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -148,9 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  },
+                  onPressed: _updateProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
