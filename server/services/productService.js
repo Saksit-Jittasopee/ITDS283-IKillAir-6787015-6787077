@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/db.js');
 
 const getProducts = async (category, search) => {
   const where = {};
@@ -21,7 +20,9 @@ const createProduct = async (data) => {
       name: data.name,
       price: parseFloat(data.price),
       category: data.category,
-      imagePath: data.imagePath || null
+      image: data.image || '',     
+      quantity: data.quantity || 0, 
+      status: data.status ?? true   
     }
   });
 };
@@ -33,7 +34,9 @@ const updateProduct = async (id, data) => {
       name: data.name,
       price: parseFloat(data.price),
       category: data.category,
-      imagePath: data.imagePath || null
+      image: data.image || '',
+      quantity: data.quantity,
+      status: data.status
     }
   });
 };

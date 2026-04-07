@@ -1,52 +1,93 @@
-const authService = require('../services/authService.js');
+const prisma = require('../config/db.js'); 
+const bcrypt = require('bcryptjs'); 
+const jwt = require('jsonwebtoken');
 
-const register = async (req, res) => {
-  try {
-    const { email, username, password } = req.body;
-    const user = await authService.registerUser(email, username, password);
-    res.status(201).json({ 
-      success: true, 
-      message: "สมัครสมาชิกสำเร็จ!", 
-      user: { id: user.id, username: user.username, email: user.email } 
+// 1. Register
+const registerUser = async (email, username, password) => {
+    const existingUser = await prisma.useradmin.findFirst({
+        where: { email: email }
     });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
 
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const { user, token } = await authService.loginUser(email, password);
-    res.status(200).json({ 
-      success: true, 
-      message: "เข้าสู่ระบบสำเร็จ!", 
-      token: token, 
-      user: { id: user.id, username: user.username, email: user.email, role: user.role }  
+    if (existingUser) {
+        throw new Error("อีเมลนี้ถูกใช้งานแล้ว"); 
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = await prisma.useradmin.create({
+        data: {
+            email: email,
+            username: username,
+            password: hashedPassword,
+            role: false,
+            status: true,
+            isNoti: false
+        }
     });
-  } catch (error) {
-    res.status(401).json({ success: false, message: error.message });
-  }
+
+    return newUser;
 };
 
-const verifyEmail = async (req, res) => {
-  try {
-    const { email } = req.body;
-    await authService.verifyEmail(email);
-    res.status(200).json({ success: true, message: "พบอีเมลในระบบ" });
-  } catch (error) {
-    res.status(404).json({ success: false, message: error.message });
-  }
+// 2. Login
+const loginUser = async (email, password) => {
+    const user = await prisma.useradmin.findFirst({
+        where: { email: email }
+    });
+
+    if (!user) {
+        throw new Error("ไม่พบผู้ใช้งานนี้ในระบบ");
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        throw new Error("รหัสผ่านไม่ถูกต้อง");
+    }
+
+    // สร้าง Token
+    const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET, 
+        { expiresIn: '7d' } 
+    );
+
+    return { user, token };
 };
 
-const resetPassword = async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-    await authService.resetPassword(email, newPassword);
-    res.status(200).json({ success: true, message: "เปลี่ยนรหัสผ่านสำเร็จ!" });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+// 3. Verify Email 
+const verifyEmail = async (email) => {
+    const user = await prisma.useradmin.findFirst({
+        where: { email: email }
+    });
+
+    if (!user) {
+        throw new Error("ไม่พบอีเมลนี้ในระบบ กรุณาตรวจสอบอีกครั้ง");
+    }
+
+    return user;
 };
 
-module.exports = { register, login, verifyEmail, resetPassword };
+// 4. Reset Password 
+const resetPassword = async (email, newPassword) => {
+    const user = await prisma.useradmin.findFirst({
+        where: { email: email }
+    });
+
+    if (!user) {
+        throw new Error("เกิดข้อผิดพลาด ไม่พบผู้ใช้งานนี้ในระบบ");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const updatedUser = await prisma.useradmin.update({
+        where: { id: user.id }, 
+        data: {
+            password: hashedPassword
+        }
+    });
+
+    return updatedUser;
+};
+
+module.exports = { registerUser, loginUser, verifyEmail, resetPassword };

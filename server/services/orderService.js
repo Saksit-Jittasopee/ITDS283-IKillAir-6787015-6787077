@@ -1,16 +1,16 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/db.js');
 
 const getOrders = async (search) => {
-  const where = search ? {
-    OR: [
-      { orderId: { contains: search, mode: 'insensitive' } },
-      { username: { contains: search, mode: 'insensitive' } },
-      { product: { contains: search, mode: 'insensitive' } }
-    ]
-  } : {};
   return await prisma.order.findMany({
-    where,
+    where: search ? {
+      user: {
+        username: { contains: search, mode: 'insensitive' }
+      }
+    } : {},
+    include: {
+      user: { select: { username: true } },
+      orderItems: { include: { product: true } }
+    },
     orderBy: { id: 'desc' }
   });
 };
@@ -18,11 +18,10 @@ const getOrders = async (search) => {
 const createOrder = async (data) => {
   return await prisma.order.create({
     data: {
-      orderId: data.orderId,
-      username: data.username || 'Guest',
-      product: data.product,
       totalPrice: parseFloat(data.totalPrice),
-      paymentMethod: data.paymentMethod
+      payMet: data.payMet,
+      status: data.status ?? false,
+      userId: data.userId
     }
   });
 };
@@ -31,11 +30,9 @@ const updateOrder = async (id, data) => {
   return await prisma.order.update({
     where: { id: Number(id) },
     data: {
-      username: data.username,
-      product: data.product,
-      orderId: data.orderId,
       totalPrice: parseFloat(data.totalPrice),
-      paymentMethod: data.paymentMethod
+      payMet: data.payMet,
+      status: data.status
     }
   });
 };

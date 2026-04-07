@@ -14,9 +14,10 @@ const getDashboardStats = async () => {
     }
   });
 
-  const orders = await prisma.order.findMany({
-    select: { totalPrice: true }
-  });
+const orders = await prisma.order.findMany({
+  where: { status: true },  
+  select: { totalPrice: true }
+});
   
   const totalSales = orders.reduce((sum, order) => sum + Number(order.totalPrice), 0);
 
