@@ -4,7 +4,7 @@ const {
   createOrder,
   updateOrder,
   deleteOrder
-} = require('../controllers/orderController.js');
+} = require('../Controller/orderController.js');
 const { verifyToken } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();

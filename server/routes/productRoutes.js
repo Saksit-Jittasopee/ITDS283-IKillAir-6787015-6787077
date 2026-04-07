@@ -4,7 +4,7 @@ const {
   createProduct,
   updateProduct,
   deleteProduct
-} = require('../controllers/productController.js');
+} = require('../Controller/productController.js');
 
 const { verifyToken } = require('../middlewares/authMiddleware.js');
 

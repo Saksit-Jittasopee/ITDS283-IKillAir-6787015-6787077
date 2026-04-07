@@ -19,6 +19,7 @@ const productRoutes = require('./routes/productRoutes.js');
 const orderRoutes = require('./routes/orderRoutes.js');
 const newsRoutes = require('./routes/newsRoutes.js');
 const dashboardRoutes = require('./routes/dashboardRoutes.js');
+const orditemRoutes = require('./routes/orditemRoutes.js');
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -29,31 +30,32 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/orditems', orditemRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
   res.json({ status: "OK", message: "Server is running perfectly! Jiblee mai" });
 });
 
-app.get('/api/search', async (req, res) => {
-  try {
-    const keyword = req.query.q?.toLowerCase() || '';
+// app.get('/api/search', async (req, res) => {
+//   try {
+//     const keyword = req.query.q?.toLowerCase() || '';
     
-    if (!keyword) {
-      const allUsers = await prisma.useradmin.findMany();
-      return res.json(allUsers);
-    }
+//     if (!keyword) {
+//       const allUsers = await prisma.useradmin.findMany();
+//       return res.json(allUsers);
+//     }
 
-    console.log(`Search query: ${keyword}`);
-    const results = await prisma.useradmin.findMany();
+//     console.log(`Search query: ${keyword}`);
+//     const results = await prisma.useradmin.findMany();
 
-    res.json(results);
+//     res.json(results);
 
-  } catch (error) {
-    console.error("Database Error:", error);
-    res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูล" });
-  }
-});
+//   } catch (error) {
+//     console.error("Database Error:", error);
+//     res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูล" });
+//   }
+// });
 
 // Start the server
 app.listen(port, () => {

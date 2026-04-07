@@ -13,9 +13,13 @@ const getNotifications = async (req, res) => {
 
 const createNotification = async (req, res) => {
   try {
-    const { title, target, time } = req.body;
+    const { name, message, userId } = req.body;
     const newNoti = await prisma.notification.create({
-      data: { title, target, time }
+      data: { 
+        name,       // ไม่ใช่ title
+        message,    // ไม่ใช่ target/time
+        userId: Number(userId)
+      }
     });
     res.status(201).json(newNoti);
   } catch (error) {
@@ -26,10 +30,10 @@ const createNotification = async (req, res) => {
 const updateNotification = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, target, time } = req.body;
+    const { name, message } = req.body;
     const updatedNoti = await prisma.notification.update({
       where: { id: Number(id) },
-      data: { title, target, time }
+      data: { name, message }
     });
     res.json(updatedNoti);
   } catch (error) {

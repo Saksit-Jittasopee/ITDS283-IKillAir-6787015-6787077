@@ -11,13 +11,11 @@ const getUserProfile = async (userId) => {
       role: true,
       status: true,
       isNoti: true,
-      imagePath: true,
+      // ลบ imagePath ออก
       creDate: true
     }
   });
-  if (!user) {
-    throw new Error("ไม่พบข้อมูลผู้ใช้งาน");
-  }
+  if (!user) throw new Error("ไม่พบข้อมูลผู้ใช้งาน");
   return user;
 };
 
@@ -25,8 +23,8 @@ const updateProfile = async (userId, data) => {
   return await prisma.useradmin.update({
     where: { id: userId },
     data: {
-      username: data.username,
-      imagePath: data.imagePath
+      username: data.username
+      // ลบ imagePath ออก
     }
   });
 };

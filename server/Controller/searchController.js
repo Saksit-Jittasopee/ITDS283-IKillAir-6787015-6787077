@@ -5,7 +5,10 @@ const searchProducts = async (req, res) => {
     const keyword = req.query.q || '';
     const products = await prisma.product.findMany({
       where: {
-        name: { contains: keyword, mode: 'insensitive' }
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { category: { contains: keyword, mode: 'insensitive' } }
+        ]
       }
     });
     res.json(products);

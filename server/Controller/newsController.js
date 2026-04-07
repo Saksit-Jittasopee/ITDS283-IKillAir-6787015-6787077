@@ -3,21 +3,27 @@ const prisma = require('../config/db.js');
 const getAllNews = async (req, res) => {
   try {
     const news = await prisma.news.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { date: 'desc' },
     });
     res.json(news);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching news" });
+    console.error("NEWS ERROR:", error); 
+    res.status(500).json({ message: error.message }); 
   }
 };
 
 const createNews = async (req, res) => {
   try {
-    const { title, link, source } = req.body;
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
-    
+    const { name, source, userId } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : '';
+
     const newNews = await prisma.news.create({
-      data: { title, link, source, imagePath },
+      data: { 
+        name,          
+        source,
+        image,          
+        userId: Number(userId)
+      }
     });
     res.status(201).json(newNews);
   } catch (error) {
@@ -28,11 +34,11 @@ const createNews = async (req, res) => {
 const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, link, source } = req.body;
-    const dataToUpdate = { title, link, source };
-    
+    const { name, source } = req.body;
+    const dataToUpdate = { name, source };
+
     if (req.file) {
-      dataToUpdate.imagePath = `/uploads/${req.file.filename}`;
+      dataToUpdate.image = `/uploads/${req.file.filename}`;
     }
 
     const updatedNews = await prisma.news.update({
