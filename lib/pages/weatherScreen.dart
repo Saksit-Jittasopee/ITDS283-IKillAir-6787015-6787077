@@ -171,6 +171,19 @@ class _WeatherScreenState extends State<WeatherScreen> {
     return "Clear";
   }
 
+  String _getWeatherImage(String condition) {
+    switch (condition) {
+      case 'Rainy':
+        return 'assets/images/weather/raining.jpg';
+      case 'Cloudy':
+        return 'assets/images/weather/cloudy.jpg';
+      case 'Clear':
+        return 'assets/images/weather/sunny.jpg';
+      default:
+        return 'assets/images/weather/sunny.jpg';
+    }
+  }
+
   void _setErrorState(String message) {
     if (mounted) {
       setState(() {
@@ -277,9 +290,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
               const SizedBox(height: 20),
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                // ✅ เปลี่ยนจาก Image.network เป็น Image.asset
                 child: Image.asset(
-                  'assets/images/weather/Bangkok.webp',
+                  _getWeatherImage(weatherCondition),
                   fit: BoxFit.cover,
                   width: double.infinity,
                 ),
