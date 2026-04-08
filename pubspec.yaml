@@ -39,6 +39,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   geolocator: ^14.0.2
   image_picker: ^1.2.1
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
@@ -67,7 +68,9 @@ flutter:
      - assets/images/team/Saksit.jpg
      - assets/images/team/Chanasorn.jpg
      - assets/images/team/dummy.png
-     - assets/images/weather/Bangkok.webp
+     - assets/images/weather/cloudy.jpg
+     - assets/images/weather/raining.jpg
+     - assets/images/weather/sunny.jpg
      - assets/images/payment/Promptpay.jpg
      - assets/images/news/pm2.5.webp
      - assets/images/news/reduce_energy.jpg
