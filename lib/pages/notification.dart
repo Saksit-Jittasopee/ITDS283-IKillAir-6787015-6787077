@@ -24,9 +24,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/notifications'));
       if (response.statusCode == 200) {
-        final List<dynamic> allNoti = jsonDecode(response.body);
         setState(() {
-          _notifications = allNoti.where((noti) => noti['target'] == 'everyone' || noti['target'] == 'only user').toList();
+          _notifications = jsonDecode(response.body);
         });
       }
     } catch (e) {
@@ -65,8 +64,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   return _buildNotiItem(
                     context,
                     Icons.notifications_active_outlined,
-                    noti['title'] ?? '',
-                    noti['time'] ?? '',
+                    noti['name'] ?? '',    
+                    noti['message'] ?? '', 
                     Colors.pink[50]!,
                   );
                 },
@@ -78,7 +77,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildNotiItem(BuildContext context, IconData icon, String message, String time, Color lightBgColor) {
+  Widget _buildNotiItem(BuildContext context, IconData icon, String name, String message, Color lightBgColor) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor = isDark ? Colors.grey[800]! : lightBgColor;
 
@@ -97,9 +96,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(message, style: const TextStyle(fontSize: 13, height: 1.4)),
+                Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, height: 1.4)),
                 const SizedBox(height: 4),
-                Text(time, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(message, style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),

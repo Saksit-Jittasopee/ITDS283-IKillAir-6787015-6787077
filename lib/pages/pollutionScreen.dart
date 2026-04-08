@@ -22,7 +22,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
   String currentAqi = "--";
   String aqiStatus = "Loading";
   Color aqiColor = Colors.amber;
-  
+
   String locationName = "Locating...";
   String coLevel = "--";
   String no2Level = "--";
@@ -32,7 +32,9 @@ class _PollutionScreenState extends State<PollutionScreen> {
   List<dynamic> globalRankings = [];
   bool isGlobalLoading = true;
   bool isDescending = true;
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid
+      ? 'http://10.0.2.2:3000'
+      : 'http://localhost:3000';
 
   @override
   void initState() {
@@ -48,7 +50,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
         Uri.parse('$baseUrl/api/users/profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}',
         },
       );
       if (response.statusCode == 200) {
@@ -57,7 +59,8 @@ class _PollutionScreenState extends State<PollutionScreen> {
           if (data['username'] != null) {
             usernameNotifier.value = data['username'];
           }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+          if (data['imagePath'] != null &&
+              data['imagePath'].toString().isNotEmpty) {
             profileImageNotifier.value = data['imagePath'];
           }
         }
@@ -69,16 +72,15 @@ class _PollutionScreenState extends State<PollutionScreen> {
 
   Future<void> _determinePositionAndFetchData() async {
     bool serviceEnabled;
-    LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _setErrorState("Location Disabled");
+      await Geolocator.openLocationSettings(); 
       return;
     }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission   == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         _setErrorState("Permission Denied");
@@ -91,16 +93,30 @@ class _PollutionScreenState extends State<PollutionScreen> {
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    final data = await WAQIapi.fetchAqiByLocation(position.latitude, position.longitude);
-    
+    Position position;
+
+    try {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+    } catch (e) {
+      position =
+          await Geolocator.getLastKnownPosition() ??
+          (throw Exception("Location not available"));
+    }
+    final data = await WAQIapi.fetchAqiByLocation(
+      position.latitude,
+      position.longitude,
+    );
+
     if (mounted) {
       setState(() {
         isLoading = false;
         if (data != null) {
           int aqi = data['aqi'] ?? 0;
           currentAqi = aqi.toString();
-          
+
           if (data['city'] != null && data['city']['name'] != null) {
             String rawName = data['city']['name'];
             List<String> parts = rawName.split(',');
@@ -215,14 +231,26 @@ class _PollutionScreenState extends State<PollutionScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Pollution', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                              const Text(
+                                'Pollution',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on, color: Colors.blue, size: 16),
+                                  const Icon(
+                                    Icons.location_on,
+                                    color: Colors.blue,
+                                    size: 16,
+                                  ),
                                   Expanded(
                                     child: Text(
-                                      ' $locationName', 
-                                      style: const TextStyle(color: Colors.grey),
+                                      ' $locationName',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -235,14 +263,28 @@ class _PollutionScreenState extends State<PollutionScreen> {
                           children: [
                             IconButton(
                               onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const NotificationScreen(),
+                                  ),
+                                );
                               },
-                              icon: const Icon(Icons.notifications_none, size: 28),
+                              icon: const Icon(
+                                Icons.notifications_none,
+                                size: 28,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProfileScreen(),
+                                  ),
+                                );
                               },
                               child: ValueListenableBuilder<dynamic>(
                                 valueListenable: profileImageNotifier,
@@ -256,7 +298,10 @@ class _PollutionScreenState extends State<PollutionScreen> {
                                   } else {
                                     imgProvider = FileImage(File(imagePath));
                                   }
-                                  return CircleAvatar(radius: 20, backgroundImage: imgProvider);
+                                  return CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: imgProvider,
+                                  );
                                 },
                               ),
                             ),
@@ -277,7 +322,10 @@ class _PollutionScreenState extends State<PollutionScreen> {
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey[300]!),
                             borderRadius: BorderRadius.circular(10),
@@ -288,7 +336,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
                               Icon(Icons.arrow_drop_down),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],
@@ -310,7 +358,10 @@ class _PollutionScreenState extends State<PollutionScreen> {
         color: isSelected ? Colors.blue : Colors.grey[100],
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
+      child: Text(
+        label,
+        style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+      ),
     );
   }
 
@@ -328,17 +379,39 @@ class _PollutionScreenState extends State<PollutionScreen> {
               borderRadius: BorderRadius.circular(25),
             ),
             child: isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
                 : Column(
                     children: [
-                      const Text('AQI', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                      Text(currentAqi, style: const TextStyle(fontSize: 70, fontWeight: FontWeight.bold, color: Colors.black)),
+                      const Text(
+                        'AQI',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
                       Text(
-                        locationName, 
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                        currentAqi,
+                        style: const TextStyle(
+                          fontSize: 70,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Text(
+                        locationName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                         textAlign: TextAlign.center,
                       ),
-                      Text('Status: $aqiStatus', style: const TextStyle(color: Colors.black54)),
+                      Text(
+                        'Status: $aqiStatus',
+                        style: const TextStyle(color: Colors.black54),
+                      ),
                     ],
                   ),
           ),
@@ -368,18 +441,29 @@ class _PollutionScreenState extends State<PollutionScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
           const Spacer(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               Text(' $unit', style: const TextStyle(fontSize: 10)),
             ],
           ),
@@ -399,40 +483,88 @@ class _PollutionScreenState extends State<PollutionScreen> {
           child: Row(
             children: [
               Expanded(
-                flex: 1, 
+                flex: 1,
                 child: GestureDetector(
                   onTap: _toggleSortOrder,
                   child: Row(
                     children: [
-                      const Text('Rank', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      const Text(
+                        'Rank',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(width: 4),
-                      Icon(isDescending ? Icons.arrow_upward : Icons.arrow_downward, color: Colors.white, size: 14),
+                      Icon(
+                        isDescending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        color: Colors.white,
+                        size: 14,
+                      ),
                     ],
                   ),
                 ),
               ),
-              const Expanded(flex: 3, child: Text('Major Countries\n/Cities', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
-              const Expanded(flex: 1, child: Text('US AQI', textAlign: TextAlign.right, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
+              const Expanded(
+                flex: 3,
+                child: Text(
+                  'Major Countries\n/Cities',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const Expanded(
+                flex: 1,
+                child: Text(
+                  'US AQI',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
         isGlobalLoading
-            ? const Padding(padding: EdgeInsets.all(40.0), child: Center(child: CircularProgressIndicator()))
+            ? const Padding(
+                padding: EdgeInsets.all(40.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
             : globalRankings.isEmpty
-                ? const Padding(padding: EdgeInsets.all(40.0), child: Text('No data available', style: TextStyle(color: Colors.grey)))
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: globalRankings.length,
-                    itemBuilder: (context, index) {
-                      final cityData = globalRankings[index];
-                      final cityName = cityData['city'] ?? 'Unknown';
-                      final countryName = cityData['country'] ?? 'Unknown';
-                      final aqi = cityData['aqi'] ?? 0;
-                      return _buildRankingRow('${index + 1}', '$cityName, $countryName', aqi.toString(), _getAqiColor(aqi));
-                    },
-                  ),
+            ? const Padding(
+                padding: EdgeInsets.all(40.0),
+                child: Text(
+                  'No data available',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: globalRankings.length,
+                itemBuilder: (context, index) {
+                  final cityData = globalRankings[index];
+                  final cityName = cityData['city'] ?? 'Unknown';
+                  final countryName = cityData['country'] ?? 'Unknown';
+                  final aqi = cityData['aqi'] ?? 0;
+                  return _buildRankingRow(
+                    '${index + 1}',
+                    '$cityName, $countryName',
+                    aqi.toString(),
+                    _getAqiColor(aqi),
+                  );
+                },
+              ),
         const SizedBox(height: 30),
       ],
     );
@@ -441,19 +573,43 @@ class _PollutionScreenState extends State<PollutionScreen> {
   Widget _buildRankingRow(String rank, String city, String aqi, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade100))),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+      ),
       child: Row(
         children: [
-          Expanded(flex: 1, child: Text(rank, style: const TextStyle(fontSize: 14))),
-          Expanded(flex: 3, child: Text(city, style: const TextStyle(fontSize: 14, color: Colors.grey))),
+          Expanded(
+            flex: 1,
+            child: Text(rank, style: const TextStyle(fontSize: 14)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              city,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ),
           Expanded(
             flex: 1,
             child: Align(
               alignment: Alignment.centerRight,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(15)),
-                child: Text(aqi, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Text(
+                  aqi,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               ),
             ),
           ),

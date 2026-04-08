@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -23,32 +22,6 @@ class _NewsScreenState extends State<NewsScreen> {
   void initState() {
     super.initState();
     fetchNews();
-    _fetchUserProfile();
-  }
-
-  Future<void> _fetchUserProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body)['data'];
-        if (mounted) {
-          if (data['username'] != null) {
-            usernameNotifier.value = data['username'];
-          }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
-            profileImageNotifier.value = data['imagePath'];
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
   }
 
   Future<void> fetchNews() async {
@@ -131,8 +104,7 @@ class _NewsScreenState extends State<NewsScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: _newsList.length,
                           itemBuilder: (context, index) {
-                            final news = _newsList[index];
-                            return _buildNewsCard(news);
+                            return _buildNewsCard(_newsList[index]);
                           },
                         ),
             ],
@@ -143,27 +115,24 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Widget _buildNewsCard(dynamic news) {
-    String displayPath = getImageUrl(news['imagePath']);
-    
+    String displayPath = getImageUrl(news['image']); // ✅ image ไม่ใช่ imagePath
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: displayPath.startsWith('assets/')
-                ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                : displayPath.startsWith('http')
-                    ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                    : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
-          ),
+          if (displayPath.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: displayPath.startsWith('http')
+                  ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                  : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
+            ),
           const SizedBox(height: 15),
-          Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // ✅ name
           const SizedBox(height: 10),
-          Text(news['link'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.blue)),
-          const SizedBox(height: 10),
-          Text(news['source'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          Text(news['source'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),        // ✅ source
         ],
       ),
     );

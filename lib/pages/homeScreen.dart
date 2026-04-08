@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -20,44 +19,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = true;
   List<dynamic> topCities = [];
-  
+
   List<dynamic> _newsList = [];
   bool _isNewsLoading = true;
-  
+
   String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
     _fetchTopCities();
-    _fetchUserProfile();
     _fetchNews();
-  }
-
-  Future<void> _fetchUserProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body)['data'];
-        if (mounted) {
-          if (data['username'] != null) {
-            usernameNotifier.value = data['username'];
-          }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
-            profileImageNotifier.value = data['imagePath'];
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
   }
 
   Future<void> _fetchTopCities() async {
@@ -124,37 +96,27 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      ValueListenableBuilder<String>(
-                        valueListenable: usernameNotifier,
-                        builder: (context, username, child) {
-                          return Text(
-                            'Hello, $username 👋',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                          );
-                        },
-                      ),
-                    ],
+                  ValueListenableBuilder<String>(
+                    valueListenable: usernameNotifier,
+                    builder: (context, username, child) {
+                      return Text(
+                        'Hello, $username 👋',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      );
+                    },
                   ),
                   Row(
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
                         child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
@@ -168,10 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             } else {
                               imgProvider = FileImage(File(imagePath));
                             }
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundImage: imgProvider,
-                            );
+                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
                         ),
                       ),
@@ -185,9 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   const Text('News', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
                   GestureDetector(
-                    onTap: () {
-                      widget.onNavigate(4);
-                    },
+                    onTap: () => widget.onNavigate(4),
                     child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ),
                 ],
@@ -202,14 +159,14 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Live most polluted global major city ranking',
-                    style: TextStyle(fontSize: 18, color: Colors.indigo),
+                  const Expanded(
+                    child: Text(
+                      'Live most polluted global major city ranking',
+                      style: TextStyle(fontSize: 18, color: Colors.indigo),
+                    ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      widget.onNavigate(2);
-                    },
+                    onTap: () => widget.onNavigate(2),
                     child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ),
                 ],
@@ -244,25 +201,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLatestNewsCard(dynamic news) {
-    String displayPath = getImageUrl(news['imagePath']);
-    
+    String displayPath = getImageUrl(news['image']); // ✅ image ไม่ใช่ imagePath
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: displayPath.startsWith('assets/')
-              ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-              : displayPath.startsWith('http')
-                  ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                  : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
-        ),
+        if (displayPath.isNotEmpty)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: displayPath.startsWith('http')
+                ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
+          ),
         const SizedBox(height: 15),
-        Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // ✅ name
         const SizedBox(height: 10),
-        Text(news['link'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.blue)),
-        const SizedBox(height: 10),
-        Text(news['source'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(news['source'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),        // ✅ source
       ],
     );
   }
@@ -271,21 +225,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
         child: Column(
           children: [
             const Text('AQI', style: TextStyle(color: Colors.white, fontSize: 12)),
             Text(aqi, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-            Text(
-              location, 
-              style: const TextStyle(color: Colors.white, fontSize: 10),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text(location, style: const TextStyle(color: Colors.white, fontSize: 10), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
             Text('Status: $status', style: const TextStyle(color: Colors.white70, fontSize: 10)),
           ],
         ),

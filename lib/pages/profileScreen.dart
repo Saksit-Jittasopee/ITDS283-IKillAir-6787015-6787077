@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/loginUser.dart';
@@ -18,7 +18,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notification = true;
   late TextEditingController _usernameController;
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid
+      ? 'http://10.0.2.2:3000'
+      : 'http://localhost:3000';
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       profileImageNotifier.value = image.path;
     }
@@ -45,24 +47,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final payload = {
         'username': _usernameController.text,
-        'imagePath': profileImageNotifier.value,
+        // 'imagePath': profileImageNotifier.value,
       };
 
       final response = await http.put(
         Uri.parse('$baseUrl/api/users/profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+          'Authorization': 'Bearer ${tokenNotifier.value}',
         },
         body: jsonEncode(payload),
       );
 
       if (response.statusCode == 200) {
         usernameNotifier.value = _usernameController.text;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
         Navigator.popUntil(context, (route) => route.isFirst);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update profile')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update profile')),
+        );
       }
     } catch (e) {
       print(e);
@@ -87,7 +93,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 15),
-                  const Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Profile',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               const SizedBox(height: 30),
@@ -119,8 +128,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         right: 0,
                         child: Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
-                          child: const Icon(Icons.edit_outlined, size: 16, color: Colors.white),
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.edit_outlined,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -133,9 +149,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: _usernameController,
                 decoration: InputDecoration(
                   suffixIcon: const Icon(Icons.edit_outlined),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -146,20 +171,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: _buildSwitchRow('Notification', _notification, Colors.red, (val) => setState(() => _notification = val)),
+                    child: _buildSwitchRow(
+                      'Notification',
+                      _notification,
+                      Colors.red,
+                      (val) => setState(() => _notification = val),
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const OurTeamScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const OurTeamScreen(),
+                        ),
                       );
                     },
                     child: const Text(
                       "Our Team",
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 15),
@@ -167,8 +202,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 valueListenable: themeNotifier,
                 builder: (context, currentTheme, child) {
                   bool isDarkMode = currentTheme == ThemeMode.dark;
-                  return _buildSwitchRow('Theme', isDarkMode, Colors.black, (val) {
-                    themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+                  return _buildSwitchRow('Theme', isDarkMode, Colors.black, (
+                    val,
+                  ) {
+                    themeNotifier.value = val
+                        ? ThemeMode.dark
+                        : ThemeMode.light;
                   });
                 },
               ),
@@ -181,9 +220,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text('SUBMIT', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'SUBMIT',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 15),
@@ -194,16 +238,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
                       (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text('LOG OUT', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'LOG OUT',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -225,14 +276,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       controller: TextEditingController(text: value),
       decoration: InputDecoration(
         suffixIcon: showEdit ? const Icon(Icons.edit_outlined) : null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
       ),
     );
   }
 
-  Widget _buildSwitchRow(String title, bool value, Color activeColor, Function(bool) onChanged) {
+  Widget _buildSwitchRow(
+    String title,
+    bool value,
+    Color activeColor,
+    Function(bool) onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

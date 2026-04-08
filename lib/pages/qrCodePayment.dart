@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -16,16 +15,13 @@ class PromptpayScreen extends StatelessWidget {
     if (globalUserCart.isEmpty) return;
 
     String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-    String productNames = globalUserCart.map((e) => "${e['name']} (${e['qty']}x)").join(', ');
     double total = globalUserCart.fold(0, (sum, item) => sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['qty'] ?? 1)));
-    String orderId = DateTime.now().millisecondsSinceEpoch.toString();
 
     final data = {
-      'orderId': orderId,
-      'username': usernameNotifier.value, 
-      'product': productNames,
       'totalPrice': total,
-      'paymentMethod': 'Promptpay'
+      'payMet': false,  // Promptpay = false
+      'status': false,
+      'userId': userIdNotifier.value,      
     };
 
     try {
@@ -33,7 +29,7 @@ class PromptpayScreen extends StatelessWidget {
         Uri.parse('$baseUrl/api/orders'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}',
+          'Authorization': 'Bearer ${tokenNotifier.value}', 
         },
         body: jsonEncode(data),
       );
@@ -86,17 +82,20 @@ class PromptpayScreen extends StatelessWidget {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                           },
                           child: ValueListenableBuilder<dynamic>(
-                          valueListenable: profileImageNotifier,
-                          builder: (context, imageVal, child) {
-                            ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
-                            } else {
-                              imgProvider = NetworkImage(imageVal.toString());
-                            }
-                            return CircleAvatar(radius: 20, backgroundImage: imgProvider);
-                          },
-                        ),
+                            valueListenable: profileImageNotifier,
+                            builder: (context, imageVal, child) {
+                              String imagePath = imageVal.toString();
+                              ImageProvider imgProvider;
+                              if (imagePath.contains('assets/')) {
+                                imgProvider = AssetImage(imagePath);
+                              } else if (imagePath.startsWith('http')) {
+                                imgProvider = NetworkImage(imagePath);
+                              } else {
+                                imgProvider = FileImage(File(imagePath));
+                              }
+                              return CircleAvatar(radius: 20, backgroundImage: imgProvider);
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -106,15 +105,13 @@ class PromptpayScreen extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1C3A6B),
-                  ),
+                  decoration: const BoxDecoration(color: Color(0xFF1C3A6B)),
                   child: const Center(
                     child: Text('THAI QR PAYMENT', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 30),
-                Image.network('/assets/images/payment/Promptpay.jpg', width: 250, height: 250),
+                Image.asset('assets/images/payment/Promptpay.jpg', width: 250, height: 250),
                 const SizedBox(height: 30),
                 const Text('IKillAir Inc.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
