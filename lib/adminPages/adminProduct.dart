@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
@@ -42,7 +41,7 @@ class _AdminProductState extends State<AdminProduct> {
         Uri.parse('$baseUrl/api/users/profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+          'Authorization': 'Bearer ${tokenNotifier.value}',
         },
       );
       if (response.statusCode == 200) {
@@ -76,11 +75,21 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> createProduct(Map<String, dynamic> data) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/products/admin'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
-      );
+      String? localImagePath = data['imagePath'];
+      var uri = Uri.parse('$baseUrl/api/products/admin');
+      var request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer ${tokenNotifier.value}';
+      request.fields['name'] = data['name'];
+      request.fields['price'] = data['price'].toString();
+      request.fields['category'] = data['category'];
+      if (localImagePath != null &&
+          !localImagePath.startsWith('http') &&
+          !localImagePath.startsWith('assets/') &&
+          !localImagePath.startsWith('/uploads')) {
+        var pic = await http.MultipartFile.fromPath('image', localImagePath);
+        request.files.add(pic);
+      }
+      var response = await request.send();
       if (response.statusCode == 201) {
         fetchProducts(_currentQuery, _selectedCategory);
       }
@@ -91,11 +100,21 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> updateProduct(int id, Map<String, dynamic> data) async {
     try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/api/products/admin/$id'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
-      );
+      String? localImagePath = data['imagePath'];
+      var uri = Uri.parse('$baseUrl/api/products/admin/$id');
+      var request = http.MultipartRequest('PUT', uri);
+      request.headers['Authorization'] = 'Bearer ${tokenNotifier.value}';
+      request.fields['name'] = data['name'];
+      request.fields['price'] = data['price'].toString();
+      request.fields['category'] = data['category'];
+      if (localImagePath != null &&
+          !localImagePath.startsWith('http') &&
+          !localImagePath.startsWith('assets/') &&
+          !localImagePath.startsWith('/uploads')) {
+        var pic = await http.MultipartFile.fromPath('image', localImagePath);
+        request.files.add(pic);
+      }
+      var response = await request.send();
       if (response.statusCode == 200) {
         fetchProducts(_currentQuery, _selectedCategory);
       }
@@ -106,13 +125,22 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> deleteProduct(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/products/admin/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/products/admin/$id'),
+        headers: {'Authorization': 'Bearer ${tokenNotifier.value}'},
+      );
       if (response.statusCode == 200) {
         fetchProducts(_currentQuery, _selectedCategory);
       }
     } catch (e) {
       print(e);
     }
+  }
+
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
   }
 
   @override
@@ -235,7 +263,7 @@ class _AdminProductState extends State<AdminProduct> {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     String name = product['name'] ?? 'Unknown';
     double price = double.tryParse(product['price'].toString()) ?? 0.0;
-    String? imagePath = product['imagePath'];
+    String displayPath = getImageUrl(product['imagePath']);
 
     return Container(
       padding: const EdgeInsets.all(15),
@@ -257,12 +285,14 @@ class _AdminProductState extends State<AdminProduct> {
                   color: isDark ? Colors.grey[700] : Colors.grey[200],
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: imagePath != null
+                child: displayPath.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        child: imagePath.startsWith('assets/')
-                            ? Image.asset(imagePath, fit: BoxFit.cover)
-                            : Image.file(File(imagePath), fit: BoxFit.cover),
+                        child: displayPath.startsWith('assets/')
+                            ? Image.asset(displayPath, fit: BoxFit.cover)
+                            : displayPath.startsWith('http')
+                                ? Image.network(displayPath, fit: BoxFit.cover)
+                                : Image.file(File(displayPath), fit: BoxFit.cover),
                       )
                     : Icon(Icons.image, color: isDark ? Colors.grey[400] : Colors.grey[400]),
               ),
@@ -376,6 +406,7 @@ class _ProductFormPageState extends State<_ProductFormPage> {
   String _selectedCategoryForm = 'Room Air Purify';
   String? _imagePath;
   final _formKey = GlobalKey<FormState>();
+  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   final List<String> _categoryOptions = [
     'Personal Air Purify',
@@ -415,10 +446,17 @@ class _ProductFormPageState extends State<_ProductFormPage> {
     }
   }
 
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isEditMode = widget.product != null;
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    String displayPath = getImageUrl(_imagePath);
 
     return Scaffold(
       body: SafeArea(
@@ -483,12 +521,14 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                           color: isDark ? Colors.grey[800] : Colors.grey[100],
                           shape: BoxShape.circle,
                         ),
-                        child: _imagePath != null
+                        child: displayPath.isNotEmpty
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(60),
-                                child: _imagePath!.startsWith('assets/')
-                                    ? Image.asset(_imagePath!, fit: BoxFit.cover)
-                                    : Image.file(File(_imagePath!), fit: BoxFit.cover),
+                                child: displayPath.startsWith('assets/')
+                                    ? Image.asset(displayPath, fit: BoxFit.cover)
+                                    : displayPath.startsWith('http')
+                                        ? Image.network(displayPath, fit: BoxFit.cover)
+                                        : Image.file(File(displayPath), fit: BoxFit.cover),
                               )
                             : Icon(Icons.image_outlined, size: 50, color: isDark ? Colors.grey[400] : Colors.grey[400]),
                       ),

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -39,7 +38,7 @@ class _AdminUserState extends State<AdminUser> {
         Uri.parse('$baseUrl/api/users/profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+          'Authorization': 'Bearer ${tokenNotifier.value}',
         },
       );
       if (response.statusCode == 200) {
@@ -60,7 +59,10 @@ class _AdminUserState extends State<AdminUser> {
 
   Future<void> fetchUsers(String query) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/users/admin?q=$query'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/admin?q=$query'),
+        headers: {'Authorization': 'Bearer ${tokenNotifier.value}'},
+      );
       if (response.statusCode == 200) {
         setState(() {
           _users = jsonDecode(response.body);
@@ -75,7 +77,10 @@ class _AdminUserState extends State<AdminUser> {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/users/admin'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${tokenNotifier.value}',
+        },
         body: jsonEncode(data),
       );
       if (response.statusCode == 201) {
@@ -90,7 +95,10 @@ class _AdminUserState extends State<AdminUser> {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/api/users/admin/$id'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${tokenNotifier.value}',
+        },
         body: jsonEncode(data),
       );
       if (response.statusCode == 200) {
@@ -103,7 +111,10 @@ class _AdminUserState extends State<AdminUser> {
 
   Future<void> deleteUser(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/users/admin/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/users/admin/$id'),
+        headers: {'Authorization': 'Bearer ${tokenNotifier.value}'},
+      );
       if (response.statusCode == 200) {
         fetchUsers(_currentQuery);
       }
