@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/paymentScreen.dart';
@@ -23,33 +23,33 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserProfile();
+    // _fetchUserProfile();
   }
 
-  Future<void> _fetchUserProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body)['data'];
-        if (mounted) {
-          if (data['username'] != null) {
-            usernameNotifier.value = data['username'];
-          }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
-            profileImageNotifier.value = data['imagePath'];
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
+  // Future<void> _fetchUserProfile() async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('$baseUrl/api/users/profile'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+  //       },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body)['data'];
+  //       if (mounted) {
+  //         if (data['username'] != null) {
+  //           usernameNotifier.value = data['username'];
+  //         }
+  //         if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+  //           profileImageNotifier.value = data['imagePath'];
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   void _removeItem(int index) {
     setState(() {

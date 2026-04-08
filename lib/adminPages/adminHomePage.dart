@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -17,8 +17,10 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-  
+  String baseUrl = Platform.isAndroid
+      ? 'http://10.0.2.2:3000'
+      : 'http://localhost:3000';
+
   int _totalProducts = 0;
   double _totalSales = 0.0;
   int _totalUsers = 0;
@@ -27,38 +29,43 @@ class _AdminHomeState extends State<AdminHome> {
   @override
   void initState() {
     super.initState();
-    _fetchUserProfile();
+    // _fetchUserProfile();
     _fetchDashboardStats();
   }
 
-  Future<void> _fetchUserProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body)['data'];
-        if (mounted) {
-          if (data['username'] != null) {
-            usernameNotifier.value = data['username'];
-          }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
-            profileImageNotifier.value = data['imagePath'];
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
+  // Future<void> _fetchUserProfile() async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('$baseUrl/api/users/profile'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}',
+  //       },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body)['data'];
+  //       if (mounted) {
+  //         if (data['username'] != null) {
+  //           usernameNotifier.value = data['username'];
+  //         }
+  //         if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
+  //           profileImageNotifier.value = data['imagePath'];
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   Future<void> _fetchDashboardStats() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/dashboard/admin'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/dashboard/admin'),
+        headers: {
+          'Authorization': 'Bearer ${tokenNotifier.value}', 
+        },
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -94,7 +101,10 @@ class _AdminHomeState extends State<AdminHome> {
                     builder: (context, username, child) {
                       return Text(
                         'Hello, $username 👋',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       );
                     },
                   ),
@@ -102,16 +112,26 @@ class _AdminHomeState extends State<AdminHome> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminNotification()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AdminNotification(),
+                            ),
+                          );
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
                         },
-                         child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
                             String imagePath = imageVal.toString();
@@ -138,12 +158,22 @@ class _AdminHomeState extends State<AdminHome> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Products Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  const Text(
+                    'Products Management',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.indigo,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () {
                       if (widget.onNavigate != null) widget.onNavigate!(1);
                     },
-                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                    child: const Text(
+                      'See all',
+                      style: TextStyle(color: Colors.blue, fontSize: 12),
+                    ),
                   ),
                 ],
               ),
@@ -169,12 +199,22 @@ class _AdminHomeState extends State<AdminHome> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Users Management', style: TextStyle(fontSize: 20, color: Colors.indigo, fontWeight: FontWeight.w500)),
+                  const Text(
+                    'Users Management',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.indigo,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () {
-                      if (widget.onNavigate != null) widget.onNavigate!(2); 
+                      if (widget.onNavigate != null) widget.onNavigate!(2);
                     },
-                    child: const Text('See all', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                    child: const Text(
+                      'See all',
+                      style: TextStyle(color: Colors.blue, fontSize: 12),
+                    ),
                   ),
                 ],
               ),
@@ -185,7 +225,11 @@ class _AdminHomeState extends State<AdminHome> {
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
                 ),
                 child: Column(
@@ -196,24 +240,53 @@ class _AdminHomeState extends State<AdminHome> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Total Users', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 14)),
+                            Text(
+                              'Total Users',
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
                             const SizedBox(height: 8),
-                            Text('$_totalUsers', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                            Text(
+                              '$_totalUsers',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Colors.indigo.shade50, shape: BoxShape.circle),
-                          child: Icon(Icons.people, color: Colors.indigo.shade300, size: 30),
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.people,
+                            color: Colors.indigo.shade300,
+                            size: 30,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        const Icon(Icons.trending_up, color: Colors.teal, size: 16),
+                        const Icon(
+                          Icons.trending_up,
+                          color: Colors.teal,
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
-                        Text('$_activeUsers Active users', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 12)),
+                        Text(
+                          '$_activeUsers Active users',
+                          style: TextStyle(
+                            color: isDark ? Colors.grey[400] : Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -226,16 +299,27 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color bgColor, Color iconColor) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color bgColor,
+    Color iconColor,
+  ) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -244,9 +328,21 @@ class _AdminHomeState extends State<AdminHome> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 14)),
+              Text(
+                title,
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           Container(

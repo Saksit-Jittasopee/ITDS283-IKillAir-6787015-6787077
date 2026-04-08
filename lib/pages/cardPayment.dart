@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/pages/cartScreen.dart';
 import 'package:ikillair/pages/notification.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -16,16 +15,13 @@ class CardPaymentScreen extends StatelessWidget {
     if (globalUserCart.isEmpty) return;
 
     String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-    String productNames = globalUserCart.map((e) => "${e['name']} (${e['qty']}x)").join(', ');
     double total = globalUserCart.fold(0, (sum, item) => sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['qty'] ?? 1)));
-    String orderId = DateTime.now().millisecondsSinceEpoch.toString();
 
     final data = {
-      'orderId': orderId,
-      'username': usernameNotifier.value, 
-      'product': productNames,
       'totalPrice': total,
-      'paymentMethod': 'Credit/Debit Card'
+      'payMet': true,   
+      'status': false,  
+      'userId': userIdNotifier.value,       
     };
 
     try {
@@ -33,7 +29,7 @@ class CardPaymentScreen extends StatelessWidget {
         Uri.parse('$baseUrl/api/orders'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}',
+          'Authorization': 'Bearer ${tokenNotifier.value}', // ✅ ใช้ token จริง
         },
         body: jsonEncode(data),
       );
@@ -82,14 +78,17 @@ class CardPaymentScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                         },
-                         child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
+                            String imagePath = imageVal.toString();
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                           },
@@ -106,9 +105,7 @@ class CardPaymentScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,13 +113,13 @@ class CardPaymentScreen extends StatelessWidget {
                     const Center(child: Text('Credit/Debit Card', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
                     const SizedBox(height: 20),
                     _buildLabel('FIRST NAME'),
-                    _buildTextField(context, 'Enter your first name'), 
+                    _buildTextField(context, 'Enter your first name'),
                     const SizedBox(height: 15),
                     _buildLabel('LAST NAME'),
                     _buildTextField(context, 'Enter your last name'),
                     const SizedBox(height: 15),
                     _buildLabel('CARD NUMBER'),
-                    _buildTextField(context, '**** **** **** **** ****'),
+                    _buildTextField(context, '**** **** **** ****'),
                     const SizedBox(height: 15),
                     Row(
                       children: [
@@ -188,7 +185,7 @@ class CardPaymentScreen extends StatelessWidget {
       child: TextField(
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey.shade400, fontWeight: FontWeight.bold),
+          hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey.shade400),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         ),

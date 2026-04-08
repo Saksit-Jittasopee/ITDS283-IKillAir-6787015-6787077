@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:ikillair/main.dart'; 
+import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/createAccount.dart';
 import 'package:ikillair/pages/forgotPassword1.dart';
 
@@ -22,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!_formKey.currentState!.validate()) return;
 
     String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-    
+
     final payload = {
       'email': _emailController.text,
       'password': _passwordController.text,
@@ -40,6 +40,8 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         bool isAdmin = data['user']['role'] == true;
         usernameNotifier.value = data['user']['username'];
+        userIdNotifier.value = data['user']['id'];
+        tokenNotifier.value = data['token']; 
 
         Navigator.pushReplacement(
           context,
@@ -76,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                     hintText: 'Email Address',
                     hintStyle: const TextStyle(color: Colors.grey),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: const BorderSide(color: Colors.grey)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: BorderSide(color: Colors.grey.shade400)),
                   ),
                   validator: (value) => value == null || value.isEmpty ? 'Please enter your email' : null,
@@ -89,22 +91,17 @@ class _LoginPageState extends State<LoginPage> {
                     hintText: 'Password',
                     hintStyle: const TextStyle(color: Colors.grey),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: const BorderSide(color: Colors.grey)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: BorderSide(color: Colors.grey.shade400)),
                   ),
                   validator: (value) => value == null || value.isEmpty ? 'Please enter your password' : null,
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const forgotPassword1()));
-                      },
-                      child: const Text('Forgot your password?', style: TextStyle(color: Colors.blue)),
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const forgotPassword1()));
+                  },
+                  child: const Text('Forgot your password?', style: TextStyle(color: Colors.blue)),
                 ),
                 const SizedBox(height: 32),
                 SizedBox(
@@ -118,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
                     ),
                     onPressed: _login,
+                    
                     child: const Text('SIGN IN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),

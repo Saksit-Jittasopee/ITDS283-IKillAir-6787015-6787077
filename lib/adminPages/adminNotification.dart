@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -21,32 +20,6 @@ class _AdminNotificationState extends State<AdminNotification> {
   void initState() {
     super.initState();
     fetchNotifications();
-    _fetchUserProfile();
-  }
-
-  Future<void> _fetchUserProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body)['data'];
-        if (mounted) {
-          if (data['username'] != null) {
-            usernameNotifier.value = data['username'];
-          }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
-            profileImageNotifier.value = data['imagePath'];
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
   }
 
   Future<void> fetchNotifications() async {
@@ -64,10 +37,11 @@ class _AdminNotificationState extends State<AdminNotification> {
 
   Future<void> deleteNotification(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/notifications/admin/$id'));
-      if (response.statusCode == 200) {
-        fetchNotifications();
-      }
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/notifications/admin/$id'),
+        headers: {'Authorization': 'Bearer ${tokenNotifier.value}'}, 
+      );
+      if (response.statusCode == 200) fetchNotifications();
     } catch (e) {
       print(e);
     }
@@ -75,8 +49,6 @@ class _AdminNotificationState extends State<AdminNotification> {
 
   @override
   Widget build(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -115,10 +87,7 @@ class _AdminNotificationState extends State<AdminNotification> {
                         } else {
                           imgProvider = FileImage(File(imagePath));
                         }
-                        return CircleAvatar(
-                          radius: 20,
-                          backgroundImage: imgProvider,
-                        );
+                        return CircleAvatar(radius: 20, backgroundImage: imgProvider);
                       },
                     ),
                   ),
@@ -130,7 +99,7 @@ class _AdminNotificationState extends State<AdminNotification> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: _notifications.length,
                 itemBuilder: (context, index) {
-                  return _buildNotificationCard(_notifications[index], index, isDark);
+                  return _buildNotificationCard(_notifications[index], index);
                 },
               ),
             ),
@@ -145,56 +114,31 @@ class _AdminNotificationState extends State<AdminNotification> {
     );
   }
 
-  Widget _buildNotificationCard(dynamic noti, int index, bool isDark) {
-    IconData targetIcon;
-    Color targetColor;
-
-    if (noti['target'] == 'only admin') {
-      targetIcon = Icons.admin_panel_settings;
-      targetColor = Colors.purple;
-    } else if (noti['target'] == 'only user') {
-      targetIcon = Icons.person;
-      targetColor = Colors.orange;
-    } else {
-      targetIcon = Icons.public;
-      targetColor = Colors.green;
-    }
-
+  Widget _buildNotificationCard(dynamic noti, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: targetColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(targetIcon, color: targetColor, size: 24),
+            decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.notifications, color: Colors.blue, size: 24),
           ),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(noti['title'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, height: 1.3)),
+                Text(noti['name'] ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, height: 1.3)),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text('To: ${noti['target']}', style: TextStyle(fontSize: 12, color: targetColor, fontWeight: FontWeight.w500)),
-                    const SizedBox(width: 10),
-                    Text(noti['time'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
+                Text(noti['message'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),
@@ -250,12 +194,13 @@ class _AdminNotificationState extends State<AdminNotification> {
       try {
         final response = await http.post(
           Uri.parse('$baseUrl/api/notifications/admin'),
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${tokenNotifier.value}', 
+          },
           body: jsonEncode(result),
         );
-        if (response.statusCode == 201) {
-          fetchNotifications();
-        }
+        if (response.statusCode == 201) fetchNotifications();
       } catch (e) {
         print(e);
       }
@@ -265,21 +210,20 @@ class _AdminNotificationState extends State<AdminNotification> {
   Future<void> _openEditNotificationPage(BuildContext context, dynamic noti, int index) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => _NotificationFormPage(notification: noti),
-      ),
+      MaterialPageRoute(builder: (context) => _NotificationFormPage(notification: noti)),
     );
 
     if (result != null) {
       try {
         final response = await http.put(
           Uri.parse('$baseUrl/api/notifications/admin/${noti['id']}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${tokenNotifier.value}', 
+          },
           body: jsonEncode(result),
         );
-        if (response.statusCode == 200) {
-          fetchNotifications();
-        }
+        if (response.statusCode == 200) fetchNotifications();
       } catch (e) {
         print(e);
       }
@@ -297,25 +241,22 @@ class _NotificationFormPage extends StatefulWidget {
 }
 
 class _NotificationFormPageState extends State<_NotificationFormPage> {
-  late TextEditingController _titleController;
-  String _selectedTarget = 'everyone';
+  late TextEditingController _nameController;
+  late TextEditingController _messageController;
   final _formKey = GlobalKey<FormState>();
-
-  final List<String> _targetOptions = ['everyone', 'only admin', 'only user'];
 
   @override
   void initState() {
     super.initState();
     bool isEdit = widget.notification != null;
-    _titleController = TextEditingController(text: isEdit ? widget.notification['title'] : '');
-    if (isEdit && _targetOptions.contains(widget.notification['target'])) {
-      _selectedTarget = widget.notification['target'];
-    }
+    _nameController = TextEditingController(text: isEdit ? widget.notification['name'] : '');       
+    _messageController = TextEditingController(text: isEdit ? widget.notification['message'] : '');
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _nameController.dispose();
+    _messageController.dispose();
     super.dispose();
   }
 
@@ -345,39 +286,29 @@ class _NotificationFormPageState extends State<_NotificationFormPage> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                const Text('Title', style: TextStyle(color: Colors.grey)),
+                const Text('Name', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 8),
                 TextFormField(
-                  controller: _titleController,
-                  maxLines: 3,
-                  validator: (value) => value!.isEmpty ? 'Please enter notification title' : null,
+                  controller: _nameController,
+                  validator: (value) => value!.isEmpty ? 'Please enter notification name' : null,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                   ),
                 ),
-                const SizedBox(height: 30),
-                const Text('Sending to', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 24),
+                const Text('Message', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _selectedTarget,
+                TextFormField(
+                  controller: _messageController,
+                  maxLines: 3,
+                  validator: (value) => value!.isEmpty ? 'Please enter message' : null,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                   ),
-                  items: _targetOptions.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _selectedTarget = newValue!;
-                    });
-                  },
                 ),
                 const SizedBox(height: 40),
                 SizedBox(
@@ -386,16 +317,12 @@ class _NotificationFormPageState extends State<_NotificationFormPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        final now = DateTime.now();
-                        String timeString = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
-                        
-                        final updatedNoti = {
-                          'id': isEdit ? widget.notification!['id'] : null,
-                          'title': _titleController.text,
-                          'target': _selectedTarget,
-                          'time': isEdit ? widget.notification!['time'] : timeString,
+                        final data = {
+                          'name': _nameController.text,       
+                          'message': _messageController.text, 
+                          'userId': userIdNotifier.value, 
                         };
-                        Navigator.pop(context, updatedNoti);
+                        Navigator.pop(context, data);
                       }
                     },
                     style: ElevatedButton.styleFrom(

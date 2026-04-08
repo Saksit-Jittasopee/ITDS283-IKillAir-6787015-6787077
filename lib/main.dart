@@ -14,13 +14,14 @@ import 'package:ikillair/pages/productScreen.dart';
 import 'package:ikillair/pages/loginUser.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
-final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('/assets/images/team/Saksit.jpg');
+final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('assets/images/team/Saksit.jpg');
 final ValueNotifier<String> usernameNotifier = ValueNotifier<String>('Saksit');
+final ValueNotifier<String> tokenNotifier = ValueNotifier<String>(''); 
+final ValueNotifier<int> userIdNotifier = ValueNotifier<int>(0);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env"); 
-  
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
 
 class MainContainer extends StatefulWidget {
   final bool isAdmin;
-  
+
   const MainContainer({super.key, this.isAdmin = false});
 
   @override
@@ -63,7 +64,7 @@ class _MainContainerState extends State<MainContainer> {
   @override
   void initState() {
     super.initState();
-    
+
     _userPages = [
       HomeScreen(onNavigate: (index) => setState(() => _selectedIndex = index)),
       const ProductScreen(),

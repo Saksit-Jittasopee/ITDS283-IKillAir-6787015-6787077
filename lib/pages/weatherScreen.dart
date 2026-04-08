@@ -21,7 +21,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   String humidity = "--";
   String weatherCondition = "Loading";
   IconData weatherIcon = Icons.wb_sunny_outlined;
-  
+
   String currentDate = "";
   String currentTime = "";
   List<Map<String, dynamic>> hourlyForecast = [];
@@ -35,12 +35,35 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   void _updateDateTime() {
     final now = DateTime.now();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
     setState(() {
-      currentDate = '${now.day} ${months[now.month - 1]}, ${weekdays[now.weekday - 1]}';
-      currentTime = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      currentDate =
+          '${now.day} ${months[now.month - 1]}, ${weekdays[now.weekday - 1]}';
+      currentTime =
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     });
   }
 
@@ -50,7 +73,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _setErrorState("Location Disabled");
+      await Geolocator.openLocationSettings();
       return;
     }
 
@@ -68,10 +91,23 @@ class _WeatherScreenState extends State<WeatherScreen> {
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    
-    final data = await IqAirApi.fetchWeatherByLocation(position.latitude, position.longitude);
-    
+    Position position;
+
+    try {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+    } catch (e) {
+      position =
+          await Geolocator.getLastKnownPosition() ??
+          (throw Exception("Location not available"));
+    }
+    final data = await IqAirApi.fetchWeatherByLocation(
+      position.latitude,
+      position.longitude,
+    );
+
     if (mounted) {
       setState(() {
         isLoading = false;
@@ -86,7 +122,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
             temperature = temp.toString();
             int humid = weather['hu'] ?? 0;
             humidity = '$humid%';
-            
+
             if (weather['ws'] != null) {
               double wsMs = (weather['ws'] as num).toDouble();
               double wsKmh = wsMs * 3.6;
@@ -107,14 +143,13 @@ class _WeatherScreenState extends State<WeatherScreen> {
   void _generateMockHourlyForecast(int currentTemp) {
     final now = DateTime.now();
     hourlyForecast = [];
-    
     for (int i = 0; i < 5; i++) {
       final forecastTime = now.add(Duration(hours: i));
-      final timeStr = i == 0 ? 'Now' : '${forecastTime.hour.toString().padLeft(2, '0')}:00';
-      
+      final timeStr = i == 0
+          ? 'Now'
+          : '${forecastTime.hour.toString().padLeft(2, '0')}:00';
       int mockTemp = currentTemp + (i * (i % 2 == 0 ? 1 : -1));
-      int mockHumid = 70 + (i * 2); 
-      
+      int mockHumid = 70 + (i * 2);
       hourlyForecast.add({
         'time': timeStr,
         'temp': '$mockTemp°',
@@ -167,13 +202,23 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Weather', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Weather',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, color: Colors.blue, size: 16),
+                            const Icon(
+                              Icons.location_on,
+                              color: Colors.blue,
+                              size: 16,
+                            ),
                             Expanded(
                               child: Text(
-                                ' $locationName', 
+                                ' $locationName',
                                 style: const TextStyle(color: Colors.grey),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -189,7 +234,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationScreen(),
+                            ),
                           );
                         },
                         icon: const Icon(Icons.notifications_none, size: 28),
@@ -199,17 +246,22 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
                           );
                         },
-                         child: ValueListenableBuilder<dynamic>(
+                        child: ValueListenableBuilder<dynamic>(
                           valueListenable: profileImageNotifier,
                           builder: (context, imageVal, child) {
+                            String imagePath = imageVal.toString();
                             ImageProvider imgProvider;
-                            if (imageVal is File) {
-                              imgProvider = FileImage(imageVal);
+                            if (imagePath.contains('assets/')) {
+                              imgProvider = AssetImage(imagePath);
+                            } else if (imagePath.startsWith('http')) {
+                              imgProvider = NetworkImage(imagePath);
                             } else {
-                              imgProvider = NetworkImage(imageVal.toString());
+                              imgProvider = FileImage(File(imagePath));
                             }
                             return CircleAvatar(
                               radius: 20,
@@ -225,7 +277,12 @@ class _WeatherScreenState extends State<WeatherScreen> {
               const SizedBox(height: 20),
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: Image.network('/assets/images/weather/Bangkok.webp', fit: BoxFit.cover),
+                // ✅ เปลี่ยนจาก Image.network เป็น Image.asset
+                child: Image.asset(
+                  'assets/images/weather/Bangkok.webp',
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
               ),
               const SizedBox(height: 20),
               isLoading
@@ -239,8 +296,14 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(currentDate, style: const TextStyle(color: Colors.grey)),
+                            const Text(
+                              'Today',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              currentDate,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
                             const SizedBox(height: 10),
                             _weatherDetail(weatherIcon, weatherCondition),
                             _weatherDetail(Icons.air, windSpeed),
@@ -250,10 +313,16 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(currentTime, style: const TextStyle(fontSize: 40)),
-                            Text('$temperature°', style: const TextStyle(fontSize: 40)),
+                            Text(
+                              currentTime,
+                              style: const TextStyle(fontSize: 40),
+                            ),
+                            Text(
+                              '$temperature°',
+                              style: const TextStyle(fontSize: 40),
+                            ),
                           ],
-                        )
+                        ),
                       ],
                     ),
               const SizedBox(height: 20),
@@ -262,13 +331,13 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: hourlyForecast.map((forecast) {
                     return _hourlyCard(
-                      forecast['time'], 
-                      forecast['icon'], 
-                      forecast['temp'], 
-                      forecast['isNow']
+                      forecast['time'],
+                      forecast['icon'],
+                      forecast['temp'],
+                      forecast['isNow'],
                     );
                   }).toList(),
-                )
+                ),
             ],
           ),
         ),
@@ -301,7 +370,13 @@ class _WeatherScreenState extends State<WeatherScreen> {
           const SizedBox(height: 8),
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(height: 8),
-          Text(temp, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(
+            temp,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
