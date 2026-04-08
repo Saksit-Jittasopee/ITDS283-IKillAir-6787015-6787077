@@ -60,7 +60,14 @@ class _CreateAccountState extends State<CreateAccount> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 30),
                 const Text(
                   'Create an account',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),

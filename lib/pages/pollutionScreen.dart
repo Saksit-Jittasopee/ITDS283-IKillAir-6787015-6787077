@@ -320,23 +320,6 @@ class _PollutionScreenState extends State<PollutionScreen> {
                           onTap: () => setState(() => isMyCountry = false),
                           child: _buildTab('Global', !isMyCountry),
                         ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: const [
-                              Text('Today '),
-                              Icon(Icons.arrow_drop_down),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ],
