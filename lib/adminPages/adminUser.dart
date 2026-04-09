@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
@@ -61,15 +62,29 @@ class _AdminUserState extends State<AdminUser> {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/api/users/admin?q=$query'),
-        headers: {'Authorization': 'Bearer ${tokenNotifier.value}'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${tokenNotifier.value}'
+        },
       );
       if (response.statusCode == 200) {
+        final decodedData = jsonDecode(response.body);
         setState(() {
-          _users = jsonDecode(response.body);
+          if (decodedData is List) {
+            _users = decodedData;
+          } else if (decodedData is Map && decodedData.containsKey('data')) {
+            _users = decodedData['data'];
+          } else if (decodedData is Map && decodedData.containsKey('users')) {
+            _users = decodedData['users'];
+          } else {
+            _users = [];
+          }
         });
+      } else {
+        print('Error Status: ${response.statusCode}');
       }
     } catch (e) {
-      print(e);
+      print('Fetch Error: $e');
     }
   }
 
@@ -244,10 +259,10 @@ class _AdminUserState extends State<AdminUser> {
   }
 
   Widget _buildUserRow(dynamic user, int index) {
-    bool isActive = user['status'] ?? true;
-    bool isAdmin = user['role'] ?? false;
-    String username = user['username'] ?? 'Unknown';
-    String email = user['email'] ?? 'Unknown';
+    bool isActive = user['status'] ?? user['Status'] ?? user['User_Status'] ?? true;
+    bool isAdmin = user['role'] ?? user['Role'] ?? user['User_Role'] ?? false;
+    String username = user['username'] ?? user['Username'] ?? user['User_Name'] ?? 'Unknown';
+    String email = user['email'] ?? user['Email'] ?? user['User_Email'] ?? 'Unknown';
     String password = '******';
 
     return Padding(
@@ -320,17 +335,20 @@ class _AdminUserState extends State<AdminUser> {
   }
 
   void _confirmDeleteUser(BuildContext context, dynamic user) {
+    String username = user['username'] ?? user['Username'] ?? user['User_Name'] ?? 'Unknown';
+    int id = user['id'] ?? user['ID'] ?? user['User_ID'] ?? 0;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User?'),
-        content: Text('Are you sure you want to delete user "${user['username']}"?'),
+        content: Text('Are you sure you want to delete user "$username"?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              deleteUser(user['id']);
+              deleteUser(id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -361,7 +379,8 @@ class _AdminUserState extends State<AdminUser> {
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      updateUser(user['id'], result);
+      int id = user['id'] ?? user['ID'] ?? user['User_ID'] ?? 0;
+      updateUser(id, result);
     }
   }
 }
@@ -387,11 +406,11 @@ class _UserFormPageState extends State<_UserFormPage> {
   void initState() {
     super.initState();
     bool isEdit = widget.user != null;
-    _usernameController = TextEditingController(text: isEdit ? widget.user['username']?.toString() ?? '' : '');
+    _usernameController = TextEditingController(text: isEdit ? (widget.user['username'] ?? widget.user['Username'] ?? widget.user['User_Name'] ?? '').toString() : '');
     _passwordController = TextEditingController(text: '');
-    _emailController = TextEditingController(text: isEdit ? widget.user['email']?.toString() ?? '' : '');
-    _isAdmin = isEdit ? (widget.user['role'] ?? false) : false;
-    _isActive = isEdit ? (widget.user['status'] ?? true) : true;
+    _emailController = TextEditingController(text: isEdit ? (widget.user['email'] ?? widget.user['Email'] ?? widget.user['User_Email'] ?? '').toString() : '');
+    _isAdmin = isEdit ? (widget.user['role'] ?? widget.user['Role'] ?? widget.user['User_Role'] ?? false) : false;
+    _isActive = isEdit ? (widget.user['status'] ?? widget.user['Status'] ?? widget.user['User_Status'] ?? true) : true;
   }
 
   @override
@@ -520,8 +539,8 @@ class _UserFormPageState extends State<_UserFormPage> {
                           'username': _usernameController.text,
                           'email': _emailController.text,
                           'password': _passwordController.text,
-                          'isAdmin': _isAdmin,
-                          'isActive': _isActive,
+                          'role': _isAdmin,
+                          'status': _isActive,
                         };
                         Navigator.pop(context, payload);
                       }
