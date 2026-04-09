@@ -1,12 +1,40 @@
+<<<<<<< HEAD
 import 'package:flutter/material.dart';
 
 void main() {
+=======
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:ikillair/adminPages/adminHomePage.dart';
+import 'package:ikillair/adminPages/adminNews.dart';
+import 'package:ikillair/adminPages/adminOrder.dart';
+import 'package:ikillair/adminPages/adminProduct.dart';
+import 'package:ikillair/adminPages/adminUser.dart';
+import 'package:ikillair/pages/homeScreen.dart';
+import 'package:ikillair/pages/newsScreen.dart';
+import 'package:ikillair/pages/pollutionScreen.dart';
+import 'package:ikillair/pages/weatherScreen.dart';
+import 'package:ikillair/pages/productScreen.dart';
+import 'package:ikillair/pages/loginUser.dart';
+
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('assets/images/team/dummy.png');
+final ValueNotifier<String> usernameNotifier = ValueNotifier<String>('');
+final ValueNotifier<String> tokenNotifier = ValueNotifier<String>(''); 
+final ValueNotifier<int> userIdNotifier = ValueNotifier<int>(0);
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+<<<<<<< HEAD
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -31,10 +59,27 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+=======
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'IKillAir App',
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: currentMode,
+          home: const LoginPage(),
+        );
+      },
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
     );
   }
 }
 
+<<<<<<< HEAD
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -65,10 +110,47 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+=======
+class MainContainer extends StatefulWidget {
+  final bool isAdmin;
+
+  const MainContainer({super.key, this.isAdmin = false});
+
+  @override
+  State<MainContainer> createState() => _MainContainerState();
+}
+
+class _MainContainerState extends State<MainContainer> {
+  int _selectedIndex = 0;
+
+  late final List<Widget> _userPages;
+  late final List<Widget> _adminPages;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _userPages = [
+      HomeScreen(onNavigate: (index) => setState(() => _selectedIndex = index)),
+      const ProductScreen(),
+      const PollutionScreen(),
+      const WeatherScreen(),
+      const NewsScreen(),
+    ];
+
+    _adminPages = [
+      AdminHome(onNavigate: (index) => setState(() => _selectedIndex = index)),
+      const AdminProduct(),
+      const AdminUser(),
+      const AdminOrder(),
+      const AdminNews(),
+    ];
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
   }
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -116,6 +198,38 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
+=======
+    final pages = widget.isAdmin ? _adminPages : _userPages;
+
+    return Scaffold(
+      body: pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: widget.isAdmin
+            ? const [
+                BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+                BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Product'),
+                BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Users'),
+                BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Orders'),
+                BottomNavigationBarItem(icon: Icon(Icons.warning_amber_rounded), label: 'News'),
+              ]
+            : const [
+                BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+                BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Product'),
+                BottomNavigationBarItem(icon: Icon(Icons.public), label: 'Pollution'),
+                BottomNavigationBarItem(icon: Icon(Icons.wb_cloudy_outlined), label: 'Weather'),
+                BottomNavigationBarItem(icon: Icon(Icons.warning_amber_rounded), label: 'News'),
+              ],
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
       ),
     );
   }

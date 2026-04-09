@@ -3,6 +3,10 @@
 *.log
 *.pyc
 *.swp
+<<<<<<< HEAD
+=======
+.env
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
 .DS_Store
 .atom/
 .build/
@@ -11,7 +15,10 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+<<<<<<< HEAD
 .env
+=======
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
 
 # IntelliJ related
 *.iml

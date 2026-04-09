@@ -34,6 +34,15 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+<<<<<<< HEAD
+=======
+  sqflite: ^2.4.2
+  http: ^1.6.0
+  flutter_dotenv: ^6.0.0
+  geolocator: ^14.0.2
+  image_picker: ^1.2.1
+  url_launcher: ^6.3.0
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
 
 dev_dependencies:
   flutter_test:
@@ -58,9 +67,35 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
+<<<<<<< HEAD
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+=======
+  assets:
+     - assets/images/team/Saksit.jpg
+     - assets/images/team/Chanasorn.jpg
+     - assets/images/team/dummy.png
+     - assets/images/weather/cloudy.jpg
+     - assets/images/weather/raining.jpg
+     - assets/images/weather/sunny.jpg
+     - assets/images/payment/Promptpay.jpg
+     - assets/images/news/pm2.5.webp
+     - assets/images/news/reduce_energy.jpg
+     - assets/images/news/aa.png
+     - assets/images/news/bb.jpg
+     - assets/images/news/cc.jpg
+     - assets/images/news/dd.jpg
+     - assets/images/news/ee.png
+     - assets/images/news/ff.png
+     - assets\images\Products\airpurifier1.png
+     - assets\images\Products\airpurifier2.png
+     - assets\images\Products\carfilter.png
+     - assets\images\Products\filter1.png
+     - assets\images\Products\industrial.png
+     - assets\images\Products\sensor1.png
+     - .env
+>>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
