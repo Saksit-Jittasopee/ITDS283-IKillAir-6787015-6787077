@@ -1,9 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-<<<<<<< HEAD
-=======
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
->>>>>>> 47acc383d183d374b8c849afd334434e002d80ea
     <application
         android:label="ikillair"
         android:name="${applicationName}"

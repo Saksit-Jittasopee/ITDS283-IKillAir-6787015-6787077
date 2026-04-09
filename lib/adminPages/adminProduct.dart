@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
 import 'package:ikillair/pages/profileScreen.dart';
 
@@ -75,21 +75,14 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> createProduct(Map<String, dynamic> data) async {
     try {
-      String? localImagePath = data['imagePath'];
-      var uri = Uri.parse('$baseUrl/api/products/admin');
-      var request = http.MultipartRequest('POST', uri);
-      request.headers['Authorization'] = 'Bearer ${tokenNotifier.value}';
-      request.fields['name'] = data['name'];
-      request.fields['price'] = data['price'].toString();
-      request.fields['category'] = data['category'];
-      if (localImagePath != null &&
-          !localImagePath.startsWith('http') &&
-          !localImagePath.startsWith('assets/') &&
-          !localImagePath.startsWith('/uploads')) {
-        var pic = await http.MultipartFile.fromPath('image', localImagePath);
-        request.files.add(pic);
-      }
-      var response = await request.send();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/products/admin'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${tokenNotifier.value}',
+        },
+        body: jsonEncode(data),
+      );
       if (response.statusCode == 201) {
         fetchProducts(_currentQuery, _selectedCategory);
       }
@@ -100,21 +93,14 @@ class _AdminProductState extends State<AdminProduct> {
 
   Future<void> updateProduct(int id, Map<String, dynamic> data) async {
     try {
-      String? localImagePath = data['imagePath'];
-      var uri = Uri.parse('$baseUrl/api/products/admin/$id');
-      var request = http.MultipartRequest('PUT', uri);
-      request.headers['Authorization'] = 'Bearer ${tokenNotifier.value}';
-      request.fields['name'] = data['name'];
-      request.fields['price'] = data['price'].toString();
-      request.fields['category'] = data['category'];
-      if (localImagePath != null &&
-          !localImagePath.startsWith('http') &&
-          !localImagePath.startsWith('assets/') &&
-          !localImagePath.startsWith('/uploads')) {
-        var pic = await http.MultipartFile.fromPath('image', localImagePath);
-        request.files.add(pic);
-      }
-      var response = await request.send();
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/products/admin/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${tokenNotifier.value}',
+        },
+        body: jsonEncode(data),
+      );
       if (response.statusCode == 200) {
         fetchProducts(_currentQuery, _selectedCategory);
       }
@@ -137,8 +123,15 @@ class _AdminProductState extends State<AdminProduct> {
     }
   }
 
+  // ฟังก์ชันแปลงข้อมูลจาก Database ให้เป็น Path ของ Assets ในเครื่อง
   String getImageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
+    
+    if (path.startsWith('Images/') || path.startsWith('images/')) {
+      String filename = path.split('/').last;
+      return 'assets/images/Products/$filename';
+    }
+    
     if (path.startsWith('/uploads')) return '$baseUrl$path';
     return path;
   }
@@ -261,9 +254,10 @@ class _AdminProductState extends State<AdminProduct> {
 
   Widget _buildProductCard(BuildContext context, dynamic product, int index) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    String name = product['name'] ?? 'Unknown';
-    double price = double.tryParse(product['price'].toString()) ?? 0.0;
-    String displayPath = getImageUrl(product['imagePath']);
+    String name = product['name'] ?? product['Pro_Name'] ?? 'Unknown';
+    double price = double.tryParse((product['price'] ?? product['Pro_Price'] ?? 0).toString()) ?? 0.0;
+    String rawPath = product['imagePath'] ?? product['Pro_Img'] ?? '';
+    String displayPath = getImageUrl(rawPath);
 
     return Container(
       padding: const EdgeInsets.all(15),
@@ -289,7 +283,8 @@ class _AdminProductState extends State<AdminProduct> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(15),
                         child: displayPath.startsWith('assets/')
-                            ? Image.asset(displayPath, fit: BoxFit.cover)
+                            ? Image.asset(displayPath, fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.grey[400]))
                             : displayPath.startsWith('http')
                                 ? Image.network(displayPath, fit: BoxFit.cover)
                                 : Image.file(File(displayPath), fit: BoxFit.cover),
@@ -382,9 +377,9 @@ class _AdminProductState extends State<AdminProduct> {
 
     if (result != null) {
       if (result is Map<String, dynamic>) {
-        updateProduct(product['id'], result);
+        updateProduct(product['id'] ?? product['Pro_ID'], result);
       } else if (result == 'delete') {
-        deleteProduct(product['id']);
+        deleteProduct(product['id'] ?? product['Pro_ID']);
       }
     }
   }
@@ -406,25 +401,43 @@ class _ProductFormPageState extends State<_ProductFormPage> {
   String _selectedCategoryForm = 'Room Air Purify';
   String? _imagePath;
   final _formKey = GlobalKey<FormState>();
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
   final List<String> _categoryOptions = [
     'Personal Air Purify',
     'Car Air Purify',
     'Room Air Purify',
     'Air Quality Monitor',
+    'Filter',
+    'Sensor',
     'Mask'
+  ];
+
+  final List<String> _availableAssets = [
+    'assets/images/Products/airpurifier1.png',
+    'assets/images/Products/airpurifier2.png',
+    'assets/images/Products/carfilter.png',
+    'assets/images/Products/filter1.png',
+    'assets/images/Products/industrial.png',
+    'assets/images/Products/sensor1.png',
   ];
 
   @override
   void initState() {
     super.initState();
     bool isEditMode = widget.product != null;
-    _nameController = TextEditingController(text: isEditMode ? widget.product['name'] : '');
-    _priceController = TextEditingController(text: isEditMode ? widget.product['price'].toString() : '');
-    _imagePath = isEditMode ? widget.product['imagePath'] : null;
-    if (isEditMode && widget.product['category'] != null && _categoryOptions.contains(widget.product['category'])) {
-      _selectedCategoryForm = widget.product['category'];
+    _nameController = TextEditingController(text: isEditMode ? (widget.product['name'] ?? widget.product['Pro_Name'] ?? '') : '');
+    _priceController = TextEditingController(text: isEditMode ? (widget.product['price'] ?? widget.product['Pro_Price'] ?? '').toString() : '');
+    
+    String rawPath = isEditMode ? (widget.product['imagePath'] ?? widget.product['Pro_Img'] ?? '') : '';
+    if (rawPath.startsWith('Images/') || rawPath.startsWith('images/')) {
+      _imagePath = 'assets/images/Products/${rawPath.split('/').last}';
+    } else {
+      _imagePath = rawPath.isNotEmpty ? rawPath : null;
+    }
+    
+    String cat = isEditMode ? (widget.product['category'] ?? widget.product['Pro_Cat'] ?? '') : '';
+    if (cat.isNotEmpty && _categoryOptions.contains(cat)) {
+      _selectedCategoryForm = cat;
     }
   }
 
@@ -436,18 +449,67 @@ class _ProductFormPageState extends State<_ProductFormPage> {
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        _imagePath = image.path;
-      });
-    }
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Select Product Image', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: _availableAssets.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _imagePath = _availableAssets[index];
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _imagePath == _availableAssets[index] ? Colors.blue : Colors.grey.shade300,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.asset(_availableAssets[index], fit: BoxFit.cover,
+                             errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.grey[400])
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String getImageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
+    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
     if (path.startsWith('/uploads')) return '$baseUrl$path';
     return path;
   }
@@ -493,7 +555,7 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Delete Product?'),
-                              content: Text('Are you sure you want to delete "${widget.product['name']}"?'),
+                              content: Text('Are you sure you want to delete "${_nameController.text}"?'),
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
                                 TextButton(
@@ -525,7 +587,8 @@ class _ProductFormPageState extends State<_ProductFormPage> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(60),
                                 child: displayPath.startsWith('assets/')
-                                    ? Image.asset(displayPath, fit: BoxFit.cover)
+                                    ? Image.asset(displayPath, fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: 50, color: Colors.grey[400]))
                                     : displayPath.startsWith('http')
                                         ? Image.network(displayPath, fit: BoxFit.cover)
                                         : Image.file(File(displayPath), fit: BoxFit.cover),
