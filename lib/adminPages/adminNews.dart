@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ikillair/adminPages/adminNotification.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ikillair/main.dart';
@@ -33,7 +32,7 @@ class _AdminNewsState extends State<AdminNews> {
         Uri.parse('$baseUrl/api/users/profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['JWT_SECRET'] ?? ''}', 
+          'Authorization': 'Bearer ${tokenNotifier.value}',
         },
       );
       if (response.statusCode == 200) {
@@ -70,7 +69,10 @@ class _AdminNewsState extends State<AdminNews> {
 
   Future<void> _deleteNewsApi(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/api/news/admin/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/news/admin/$id'),
+        headers: {'Authorization': 'Bearer ${tokenNotifier.value}'},
+      );
       if (response.statusCode == 200) {
         fetchNews();
       }
@@ -159,7 +161,7 @@ class _AdminNewsState extends State<AdminNews> {
 
   Widget _buildNewsCard(dynamic news) {
     String displayPath = getImageUrl(news['imagePath']);
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
       child: Column(
@@ -169,11 +171,18 @@ class _AdminNewsState extends State<AdminNews> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: displayPath.startsWith('assets/')
-                    ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                    : displayPath.startsWith('http')
-                        ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                        : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
+                child: displayPath.isEmpty
+                    ? Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                      )
+                    : displayPath.startsWith('assets/')
+                        ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                        : displayPath.startsWith('http')
+                            ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+                            : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
               ),
               Positioned(
                 top: 10,
@@ -306,6 +315,7 @@ class _NewsFormPageState extends State<_NewsFormPage> {
       var uri = Uri.parse(isEdit ? '$baseUrl/api/news/admin/${widget.newsItem['id']}' : '$baseUrl/api/news/admin');
       var request = http.MultipartRequest(isEdit ? 'PUT' : 'POST', uri);
 
+      request.headers['Authorization'] = 'Bearer ${tokenNotifier.value}';
       request.fields['title'] = _titleController.text;
       request.fields['link'] = _linkController.text;
       request.fields['source'] = _sourceController.text;

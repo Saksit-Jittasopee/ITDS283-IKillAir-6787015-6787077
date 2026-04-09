@@ -32,6 +32,14 @@ app.use('/api/news', newsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/orditems', orditemRoutes);
 
+const { authLimiter, apiLimiter } = require('./middlewares/rateLimitMiddleware.js');
+
+// จำกัด auth routes
+app.use('/api/auth', authLimiter);
+
+// จำกัด API ทั่วไป
+app.use('/api', apiLimiter);
+
 // Test Route
 app.get('/', (req, res) => {
   res.json({ status: "OK", message: "Server is running perfectly! Jiblee mai" });

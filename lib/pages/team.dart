@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:ikillair/main.dart';
 import 'package:flutter/material.dart';
 import 'package:ikillair/pages/notification.dart';
@@ -20,6 +21,13 @@ class _OurTeamScreenState extends State<OurTeamScreen> {
   void initState() {
     super.initState();
     // _fetchUserProfile();
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
   }
 
   // Future<void> _fetchUserProfile() async {
@@ -111,6 +119,9 @@ class _OurTeamScreenState extends State<OurTeamScreen> {
                 '6787015',
                 'assets/images/team/Chanasorn.jpg',
                 true,
+                'https://www.facebook.com/chanasorn.sugus',
+                'https://www.instagram.com/nebu1.su_/',
+                'https://github.com/SugguSCH',
               ),
               const SizedBox(height: 40),
               _buildMemberRow(
@@ -119,6 +130,9 @@ class _OurTeamScreenState extends State<OurTeamScreen> {
                 '6787077',
                 'assets/images/team/Saksit.jpg',
                 false,
+                'https://www.facebook.com/saksit.jittasopee.1/',
+                'https://www.instagram.com/saksitjittasopee/',
+                'https://github.com/Saksit-Jittasopee',
               ),
             ],
           ),
@@ -127,7 +141,16 @@ class _OurTeamScreenState extends State<OurTeamScreen> {
     );
   }
 
-  Widget _buildMemberRow(BuildContext context, String name, String id, String imgPath, bool imgLeft) {
+  Widget _buildMemberRow(
+    BuildContext context, 
+    String name, 
+    String id, 
+    String imgPath, 
+    bool imgLeft,
+    String fbUrl,
+    String igUrl,
+    String codeUrl,
+  ) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     
     final info = Column(
@@ -135,16 +158,25 @@ class _OurTeamScreenState extends State<OurTeamScreen> {
       children: [
         const Text('Hello I\'m', style: TextStyle(fontSize: 16)),
         Text(name, style: const TextStyle(fontSize: 16)),
-        Text('Student ID: $id', style: TextStyle(fontSize: 16, color: Colors.grey)), 
+        Text('Student ID: $id', style: const TextStyle(fontSize: 16, color: Colors.grey)), 
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.facebook, color: Colors.blue, size: 28),
-            const SizedBox(width: 8),
-            const Icon(Icons.camera_alt, color: Colors.pink, size: 28),
-            const SizedBox(width: 8),
-            Icon(Icons.code, color: isDark ? Colors.white : Colors.black, size: 28),
+            GestureDetector(
+              onTap: () => _launchUrl(fbUrl),
+              child: const Icon(Icons.facebook, color: Colors.blue, size: 28),
+            ),
+            const SizedBox(width: 15),
+            GestureDetector(
+              onTap: () => _launchUrl(igUrl),
+              child: const Icon(Icons.camera_alt, color: Colors.pink, size: 28),
+            ),
+            const SizedBox(width: 15),
+            GestureDetector(
+              onTap: () => _launchUrl(codeUrl),
+              child: Icon(Icons.code, color: isDark ? Colors.white : Colors.black, size: 28),
+            ),
           ],
         ),
       ],

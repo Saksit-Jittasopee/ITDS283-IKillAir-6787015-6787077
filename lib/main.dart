@@ -14,8 +14,8 @@ import 'package:ikillair/pages/productScreen.dart';
 import 'package:ikillair/pages/loginUser.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
-final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('assets/images/team/Saksit.jpg');
-final ValueNotifier<String> usernameNotifier = ValueNotifier<String>('Saksit');
+final ValueNotifier<String> profileImageNotifier = ValueNotifier<String>('assets/images/team/dummy.png');
+final ValueNotifier<String> usernameNotifier = ValueNotifier<String>('');
 final ValueNotifier<String> tokenNotifier = ValueNotifier<String>(''); 
 final ValueNotifier<int> userIdNotifier = ValueNotifier<int>(0);
 
