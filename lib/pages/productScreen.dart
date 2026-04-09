@@ -81,13 +81,25 @@ class _ProductScreenState extends State<ProductScreen> {
       } else {
         globalUserCart.add({
           'id': product['id'],
-          'name': product['name'],
-          'price': product['price'],
+          'name': product['name'] ?? product['Pro_Name'],
+          'price': product['price'] ?? product['Pro_Price'],
           'qty': 1,
         });
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart'), duration: Duration(seconds: 1)));
+  }
+
+  String getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    
+    if (path.startsWith('Images/') || path.startsWith('images/')) {
+      String filename = path.split('/').last;
+      return 'assets/images/Products/$filename';
+    }
+    
+    if (path.startsWith('/uploads')) return '$baseUrl$path';
+    return path;
   }
 
   @override
@@ -231,30 +243,71 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   Widget _buildProductCard(BuildContext context, dynamic product) {
-    String name = product['name'] ?? 'Unknown';
-    String price = '${product['price']} Baht';
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    String name = product['name'] ?? product['Pro_Name'] ?? 'Unknown';
+    double rawPrice = double.tryParse((product['price'] ?? product['Pro_Price'] ?? 0).toString()) ?? 0.0;
+    String price = '${rawPrice.toStringAsFixed(2)} Baht';
+    
+    String rawPath = product['imagePath'] ?? product['Pro_Img'] ?? '';
+    String displayPath = getImageUrl(rawPath);
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Container(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[700] : Colors.grey[200],
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              ),
+              child: displayPath.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                      child: displayPath.startsWith('assets/')
+                          ? Image.asset(displayPath, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.grey[400]))
+                          : displayPath.startsWith('http')
+                              ? Image.network(displayPath, fit: BoxFit.cover)
+                              : Image.file(File(displayPath), fit: BoxFit.cover),
+                    )
+                  : Icon(Icons.image, size: 50, color: isDark ? Colors.grey[400] : Colors.grey[400]),
+            ),
+          ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(10.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  name, 
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(price, style: const TextStyle(color: Colors.blue, fontSize: 12)),
+                    Expanded(
+                      child: Text(
+                        price, 
+                        style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     IconButton(
-                      icon: const Icon(Icons.add_shopping_cart, size: 16, color: Colors.blue),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.add_shopping_cart, size: 20, color: Colors.blue),
                       onPressed: () => _addToCart(product),
                     ),
                   ],
