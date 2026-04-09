@@ -74,6 +74,18 @@ flutter:
      - assets/images/payment/Promptpay.jpg
      - assets/images/news/pm2.5.webp
      - assets/images/news/reduce_energy.jpg
+     - assets/images/news/aa.png
+     - assets/images/news/bb.jpg
+     - assets/images/news/cc.jpg
+     - assets/images/news/dd.jpg
+     - assets/images/news/ee.png
+     - assets/images/news/ff.png
+     - assets\images\Products\airpurifier1.png
+     - assets\images\Products\airpurifier2.png
+     - assets\images\Products\carfilter.png
+     - assets\images\Products\filter1.png
+     - assets\images\Products\industrial.png
+     - assets\images\Products\sensor1.png
      - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
