@@ -6,7 +6,7 @@ const getProducts = async (req, res) => {
     const products = await productService.getProducts(category, q);
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+    res.status(500).json({ error: error });
   }
 };
 

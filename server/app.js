@@ -6,6 +6,8 @@ const prisma = require('./config/db.js');
 const port = process.env.PORT || 3000;
 const helmet = require('helmet');
 
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(helmet());
