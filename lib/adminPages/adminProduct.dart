@@ -237,6 +237,7 @@ class _AdminProductState extends State<AdminProduct> {
                   itemBuilder: (context, index) {
                     final product = _allProducts[index];
                     return _buildProductCard(context, product, index);
+                    
                   },
                 ),
               ),
@@ -256,7 +257,7 @@ class _AdminProductState extends State<AdminProduct> {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     String name = product['name'] ?? product['Pro_Name'] ?? 'Unknown';
     double price = double.tryParse((product['price'] ?? product['Pro_Price'] ?? 0).toString()) ?? 0.0;
-    String rawPath = product['imagePath'] ?? product['Pro_Img'] ?? '';
+    String rawPath = product['image'] ?? product['Pro_Img'] ?? '';
     String displayPath = getImageUrl(rawPath);
 
     return Container(

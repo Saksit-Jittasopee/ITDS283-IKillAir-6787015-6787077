@@ -10,7 +10,7 @@ const register = async (req, res) => {
       user: { id: user.id, username: user.username, email: user.email } 
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -25,7 +25,7 @@ const login = async (req, res) => {
       user: { id: user.id, username: user.username, email: user.email, role: user.role }  
     });
   } catch (error) {
-    res.status(401).json({ success: false, message: error.message });
+    res.status(401).json({ success: false, message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -35,7 +35,7 @@ const verifyEmail = async (req, res) => {
     await authService.verifyEmail(email);
     res.status(200).json({ success: true, message: "พบอีเมลในระบบ" });
   } catch (error) {
-    res.status(404).json({ success: false, message: error.message });
+    res.status(404).json({ success: false, message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -45,7 +45,7 @@ const resetPassword = async (req, res) => {
     await authService.resetPassword(email, newPassword);
     res.status(200).json({ success: true, message: "เปลี่ยนรหัสผ่านสำเร็จ!" });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 

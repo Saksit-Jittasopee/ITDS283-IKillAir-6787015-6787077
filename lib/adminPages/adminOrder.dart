@@ -242,53 +242,56 @@ class _AdminOrderState extends State<AdminOrder> {
   }
 
   Widget _buildOrderRow(dynamic order, int index) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 60,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Icon(Icons.check_circle, color: Colors.green, size: 20),
-            ),
+  final user = order['user'];
+  final items = order['orderItems'] as List? ?? [];
+  String productNames = items.map((item) => item['product']?['name'] ?? '').join(', ');
+  bool payMet = order['payMet'] ?? false;
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 15),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 60,
+          child: Icon(
+            order['status'] == true ? Icons.check_circle : Icons.pending,
+            color: order['status'] == true ? Colors.green : Colors.orange,
+            size: 20,
           ),
-          SizedBox(
-            width: 120,
-            child: Text(order['username'] ?? '', style: const TextStyle(fontSize: 14)),
+        ),
+        SizedBox(
+          width: 120,
+          child: Text(user?['username'] ?? '', style: const TextStyle(fontSize: 14)),
+        ),
+        SizedBox(
+          width: 180,
+          child: Text(productNames, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+        ),
+        SizedBox(
+          width: 150,
+          child: Text(order['id'].toString(), style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        ),
+        SizedBox(
+          width: 100,
+          child: Text('${order['totalPrice'] ?? 0}', style: const TextStyle(fontSize: 14, color: Colors.blue)),
+        ),
+        SizedBox(
+          width: 150,
+          child: Text(payMet ? 'Credit/Debit Card' : 'Promptpay', style: const TextStyle(fontSize: 14)),
+        ),
+        SizedBox(
+          width: 60,
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+            onPressed: () => _openEditOrderPage(context, order, index),
           ),
-          SizedBox(
-            width: 180,
-            child: Text(order['product'] ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
-          ),
-          SizedBox(
-            width: 150,
-            child: Text(order['orderId'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),
-          ),
-          SizedBox(
-            width: 100,
-            child: Text('${order['totalPrice'] ?? 0}', style: const TextStyle(fontSize: 14, color: Colors.blue)),
-          ),
-          SizedBox(
-            width: 150,
-            child: Text(order['paymentMethod'] ?? '', style: const TextStyle(fontSize: 14)),
-          ),
-          SizedBox(
-            width: 60,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                onPressed: () => _openEditOrderPage(context, order, index),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Future<void> _openAddOrderPage(BuildContext context) async {
     final result = await Navigator.push(

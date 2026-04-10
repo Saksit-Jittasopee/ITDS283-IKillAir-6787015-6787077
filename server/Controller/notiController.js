@@ -7,7 +7,7 @@ const getNotifications = async (req, res) => {
     });
     res.json(notifications);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -23,7 +23,7 @@ const createNotification = async (req, res) => {
     });
     res.status(201).json(newNoti);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -37,7 +37,7 @@ const updateNotification = async (req, res) => {
     });
     res.json(updatedNoti);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -49,7 +49,7 @@ const deleteNotification = async (req, res) => {
     });
     res.json({ message: "Deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 

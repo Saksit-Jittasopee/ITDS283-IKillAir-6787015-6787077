@@ -40,11 +40,15 @@ class _NewsScreenState extends State<NewsScreen> {
     }
   }
 
-  String getImageUrl(String? path) {
-    if (path == null || path.isEmpty) return '';
-    if (path.startsWith('/uploads')) return '$baseUrl$path';
-    return path;
+String getImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('/Images/') || path.startsWith('Images/')) {
+    String filename = path.split('/').last;
+    return 'assets/images/news/$filename';
   }
+  if (path.startsWith('/uploads')) return '$baseUrl$path';
+  return path;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +129,13 @@ class _NewsScreenState extends State<NewsScreen> {
           if (displayPath.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(30),
-              child: displayPath.startsWith('http')
-                  ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                  : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
-            ),
+              child: displayPath.startsWith('assets/')
+    ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200,
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image))
+    : displayPath.startsWith('http')
+        ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+        : const SizedBox(),
+          ),
           const SizedBox(height: 15),
           Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // ✅ name
           const SizedBox(height: 10),

@@ -4,9 +4,11 @@ const cors = require('cors');
 const app = express();
 const prisma = require('./config/db.js');
 const port = process.env.PORT || 3000;
+const helmet = require('helmet');
 
 // Middleware
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,6 +33,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/orditems', orditemRoutes);
+app.use('/uploads', express.static('uploads'));
 
 const { authLimiter, apiLimiter } = require('./middlewares/rateLimitMiddleware.js');
 

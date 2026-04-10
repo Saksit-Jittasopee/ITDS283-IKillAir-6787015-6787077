@@ -41,8 +41,8 @@ class _AdminNewsState extends State<AdminNews> {
           if (data['username'] != null) {
             usernameNotifier.value = data['username'];
           }
-          if (data['imagePath'] != null && data['imagePath'].toString().isNotEmpty) {
-            profileImageNotifier.value = data['imagePath'];
+          if (data['image'] != null && data['image'].toString().isNotEmpty) {
+            profileImageNotifier.value = data['image'];
           }
         }
       }
@@ -79,11 +79,15 @@ class _AdminNewsState extends State<AdminNews> {
     } catch (e) {}
   }
 
-  String getImageUrl(String? path) {
-    if (path == null || path.isEmpty) return '';
-    if (path.startsWith('/uploads')) return '$baseUrl$path';
-    return path;
+String getImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('/Images/') || path.startsWith('Images/')) {
+    String filename = path.split('/').last;
+    return 'assets/images/news/$filename';
   }
+  if (path.startsWith('/uploads')) return '$baseUrl$path';
+  return path;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +164,7 @@ class _AdminNewsState extends State<AdminNews> {
   }
 
   Widget _buildNewsCard(dynamic news) {
-    String displayPath = getImageUrl(news['imagePath']);
+    String displayPath = getImageUrl(news['image']); 
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
@@ -212,7 +216,7 @@ class _AdminNewsState extends State<AdminNews> {
             ],
           ),
           const SizedBox(height: 15),
-          Text(news['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           Text(news['link'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.blue)),
           const SizedBox(height: 10),
@@ -279,10 +283,10 @@ class _NewsFormPageState extends State<_NewsFormPage> {
   void initState() {
     super.initState();
     bool isEdit = widget.newsItem != null;
-    _titleController = TextEditingController(text: isEdit ? widget.newsItem!['title'] : '');
+    _titleController = TextEditingController(text: isEdit ? widget.newsItem!['name'] : '');
     _linkController = TextEditingController(text: isEdit ? widget.newsItem!['link'] : '');
     _sourceController = TextEditingController(text: isEdit ? widget.newsItem!['source'] : '');
-    _imagePath = isEdit ? widget.newsItem!['imagePath'] : null;
+    _imagePath = isEdit ? widget.newsItem!['image'] : null; 
   }
 
   @override
@@ -316,9 +320,10 @@ class _NewsFormPageState extends State<_NewsFormPage> {
       var request = http.MultipartRequest(isEdit ? 'PUT' : 'POST', uri);
 
       request.headers['Authorization'] = 'Bearer ${tokenNotifier.value}';
-      request.fields['title'] = _titleController.text;
+      request.fields['name'] = _titleController.text;
       request.fields['link'] = _linkController.text;
       request.fields['source'] = _sourceController.text;
+      request.fields['userId'] = userIdNotifier.value.toString();
 
       if (!_imagePath!.startsWith('http') && !_imagePath!.startsWith('assets/') && !_imagePath!.startsWith('/uploads')) {
         var pic = await http.MultipartFile.fromPath('image', _imagePath!);
@@ -377,11 +382,12 @@ class _NewsFormPageState extends State<_NewsFormPage> {
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(20),
                             child: displayPath.startsWith('assets/')
-                                ? Image.asset(displayPath, fit: BoxFit.cover)
-                                : displayPath.startsWith('http')
-                                    ? Image.network(displayPath, fit: BoxFit.cover)
-                                    : Image.file(File(displayPath), fit: BoxFit.cover),
-                          )
+    ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200,
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image))
+    : displayPath.startsWith('http')
+        ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+        : const SizedBox(),
+          )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

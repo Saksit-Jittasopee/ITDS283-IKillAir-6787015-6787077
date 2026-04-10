@@ -8,7 +8,7 @@ const getAllNews = async (req, res) => {
     res.json(news);
   } catch (error) {
     console.error("NEWS ERROR:", error); 
-    res.status(500).json({ message: error.message }); 
+    res.status(500).json({ message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' }); 
   }
 };
 

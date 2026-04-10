@@ -248,7 +248,7 @@ class _ProductScreenState extends State<ProductScreen> {
     double rawPrice = double.tryParse((product['price'] ?? product['Pro_Price'] ?? 0).toString()) ?? 0.0;
     String price = '${rawPrice.toStringAsFixed(2)} Baht';
     
-    String rawPath = product['imagePath'] ?? product['Pro_Img'] ?? '';
+    String rawPath = product['image'] ?? product['Pro_Img'] ?? '';
     String displayPath = getImageUrl(rawPath);
 
     return Container(

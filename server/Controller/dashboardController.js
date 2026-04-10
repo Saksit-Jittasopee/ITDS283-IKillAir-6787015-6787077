@@ -5,7 +5,7 @@ const getStats = async (req, res) => {
     const stats = await dashboardService.getDashboardStats();
     res.status(200).json(stats);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 

@@ -6,7 +6,7 @@ const getOrders = async (req, res) => {
     const orders = await orderService.getOrders(q);
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -15,7 +15,7 @@ const createOrder = async (req, res) => {
     const order = await orderService.createOrder(req.body);
     res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -25,7 +25,7 @@ const updateOrder = async (req, res) => {
     const order = await orderService.updateOrder(id, req.body);
     res.json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -35,7 +35,7 @@ const deleteOrder = async (req, res) => {
     await orderService.deleteOrder(id);
     res.json({ message: "Deleted" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 

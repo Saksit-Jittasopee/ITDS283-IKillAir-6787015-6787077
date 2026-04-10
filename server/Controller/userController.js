@@ -6,7 +6,7 @@ const getProfile = async (req, res) => {
     const userProfile = await userService.getUserProfile(userId);
     res.status(200).json({ success: true, data: userProfile });
   } catch (error) {
-    res.status(404).json({ success: false, message: error.message });
+    res.status(404).json({ success: false, message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -16,7 +16,7 @@ const updateProfile = async (req, res) => {
     const updatedUser = await userService.updateProfile(userId, req.body);
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -26,7 +26,7 @@ const getAllUsers = async (req, res) => {
     const users = await userService.getAllUsers(q);
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -35,7 +35,7 @@ const createUser = async (req, res) => {
     const user = await userService.createUser(req.body);
     res.status(201).json(user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -45,7 +45,7 @@ const updateUser = async (req, res) => {
     const user = await userService.updateUser(id, req.body);
     res.status(200).json(user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 
@@ -55,7 +55,7 @@ const deleteUser = async (req, res) => {
     await userService.deleteUser(id);
     res.status(200).json({ message: "Deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }
 };
 

@@ -60,11 +60,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String getImageUrl(String? path) {
-    if (path == null || path.isEmpty) return '';
-    if (path.startsWith('/uploads')) return '$baseUrl$path';
-    return path;
+String getImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('/Images/') || path.startsWith('Images/')) {
+    String filename = path.split('/').last;
+    return 'assets/images/news/$filename';
   }
+  if (path.startsWith('/uploads')) return '$baseUrl$path';
+  return path;
+}
 
   Color _getAqiColor(int aqi) {
     if (aqi <= 50) return Colors.green;
@@ -209,9 +213,12 @@ class _HomeScreenState extends State<HomeScreen> {
         if (displayPath.isNotEmpty)
           ClipRRect(
             borderRadius: BorderRadius.circular(30),
-            child: displayPath.startsWith('http')
-                ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
-                : Image.file(File(displayPath), fit: BoxFit.cover, width: double.infinity, height: 200),
+            child: displayPath.startsWith('assets/')
+    ? Image.asset(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200,
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image))
+    : displayPath.startsWith('http')
+        ? Image.network(displayPath, fit: BoxFit.cover, width: double.infinity, height: 200)
+        : const SizedBox(),
           ),
         const SizedBox(height: 15),
         Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // ✅ name
