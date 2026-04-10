@@ -33,8 +33,7 @@ class _PollutionScreenState extends State<PollutionScreen> {
   bool isGlobalLoading = true;
   bool isDescending = true;
   String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:3000'
-      : 'http://localhost:3000';
+      ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {

@@ -19,8 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _notification = true;
   late TextEditingController _usernameController;
   String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:3000'
-      : 'http://localhost:3000';
+      ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {

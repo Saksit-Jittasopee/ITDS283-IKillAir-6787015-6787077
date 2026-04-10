@@ -16,7 +16,7 @@ class NewsScreen extends StatefulWidget {
 class _NewsScreenState extends State<NewsScreen> {
   List<dynamic> _newsList = [];
   bool _isLoading = true;
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {
@@ -119,7 +119,7 @@ String getImageUrl(String? path) {
   }
 
   Widget _buildNewsCard(dynamic news) {
-    String displayPath = getImageUrl(news['image']); // ✅ image ไม่ใช่ imagePath
+    String displayPath = getImageUrl(news['image']); 
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
@@ -137,9 +137,9 @@ String getImageUrl(String? path) {
         : const SizedBox(),
           ),
           const SizedBox(height: 15),
-          Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // ✅ name
+          Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
           const SizedBox(height: 10),
-          Text(news['source'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),        // ✅ source
+          Text(news['source'] ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),        
         ],
       ),
     );

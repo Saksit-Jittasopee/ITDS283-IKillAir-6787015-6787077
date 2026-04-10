@@ -18,7 +18,7 @@ class _forgotPassword1State extends State<forgotPassword1> {
   Future<void> _verifyEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
-    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
     
     try {
       final response = await http.post(

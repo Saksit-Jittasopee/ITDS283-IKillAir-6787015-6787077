@@ -14,7 +14,7 @@ class AdminNotification extends StatefulWidget {
 
 class _AdminNotificationState extends State<AdminNotification> {
   List<dynamic> _notifications = [];
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {

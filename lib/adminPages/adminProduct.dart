@@ -20,7 +20,7 @@ class _AdminProductState extends State<AdminProduct> {
   String _selectedCategory = 'All';
   String _currentQuery = '';
 
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {
@@ -510,7 +510,7 @@ class _ProductFormPageState extends State<_ProductFormPage> {
 
   String getImageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
-    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
     if (path.startsWith('/uploads')) return '$baseUrl$path';
     return path;
   }

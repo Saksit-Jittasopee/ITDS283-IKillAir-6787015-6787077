@@ -17,9 +17,7 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:3000'
-      : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   int _totalProducts = 0;
   double _totalSales = 0.0;

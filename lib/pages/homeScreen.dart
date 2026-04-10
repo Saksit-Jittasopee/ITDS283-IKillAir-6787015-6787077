@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _newsList = [];
   bool _isNewsLoading = true;
 
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {

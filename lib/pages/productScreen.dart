@@ -20,7 +20,7 @@ class _ProductScreenState extends State<ProductScreen> {
   final ScrollController _categoryScrollController = ScrollController();
   String _selectedCategory = 'All';
   String _currentQuery = '';
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
 
   @override
   void initState() {

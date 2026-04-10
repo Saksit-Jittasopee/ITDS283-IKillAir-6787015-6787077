@@ -17,7 +17,7 @@ class AdminUser extends StatefulWidget {
 class _AdminUserState extends State<AdminUser> {
   final ScrollController _scrollController = ScrollController();
   List<dynamic> _users = [];
-  String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
   String _currentQuery = '';
 
   @override

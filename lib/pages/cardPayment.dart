@@ -14,7 +14,7 @@ class CardPaymentScreen extends StatelessWidget {
   Future<void> submitOrder(BuildContext context) async {
     if (globalUserCart.isEmpty) return;
 
-    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
     double total = globalUserCart.fold(0, (sum, item) => sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['qty'] ?? 1)));
 
     final data = {
