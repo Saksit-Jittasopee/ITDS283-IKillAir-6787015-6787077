@@ -18,7 +18,7 @@
 
 ## 📝 Description
 
-- **This project is about developing a mobile application that provides real-time air quality information and weather updates for users in their respective countries. using Flutter and Dart in frontend part and Javascript and Node.js in backend part. Also, PostgreSQL and Prisma are used for database management. Oracle Cloud is used for deployment.**
+**This project is about developing a mobile application that provides real-time air quality information and weather updates for users in their respective countries. using Flutter and Dart in frontend part and Javascript and Node.js in backend part. Also, PostgreSQL and Prisma are used for database management. Oracle Cloud is used for deployment.**
 
 ## ✨ Features
 
@@ -98,13 +98,86 @@
 
 ---
 
-## 📁 API Endpoints
+## 🔌 API Endpoints
 
-**Base URL:** `http://`
+**Base URL:** `https://jiblee.arlifzs.site/api`
 
 **Auth Header:** `Authorization: Bearer <token>`
 
-api endpoints later
+### Authentication
+
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| POST  | /auth/registers        | User, Admin | Create new account |
+| POST    | /auth/login | User, Admin | Sign in |
+| POST    | /auth/verify-email | User, Admin | Verify email address |
+| POST    | /auth/reset-password | User, Admin | Reset password |
+
+### Dashboard
+
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /dashboard/admin        | Admin | Show Admin statistics dashboard |
+
+### News
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /news        | User, Admin | Show current news info |
+| POST    | /news/admin | Admin | Create new news info |
+| PUT   | /news/admin/:id | Admin | Update news info by Admin based on ID |
+| DELETE   | /news/admin/:id | Admin | Delete news info by Admin based on ID |
+
+### Notification
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /notifications        | User, Admin | Show notifications |
+| POST    | /notifications/admin | Admin | Create new notification |
+| PUT   | /notifications/admin/:id | Admin | Update notification by Admin based on ID|
+| DELETE   | /notifications/admin/:id | Admin | Delete notification by Admin based on ID|
+
+### Orders
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| POST    | /orders        | User | When User pays for products, it will be added as a new order |
+| GET  | /orders/admin        | Admin | Show all orders of the User |
+| POST    | /orders/admin | Admin | Create a new order by Admin |
+| PUT   | /orders/admin/:id | Admin | Update an order by Admin based on ID |
+| DELETE   | /orders/admin/:id | Admin | Delete an order by Admin based on ID |
+
+### OrdersItem
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /orditems/admin        | Admin | Show items in the order table |
+| POST    | /orditems        | User | When User pays for products, all items will be added to the order |
+| PUT   | /orditems/admin/:id | Admin | Update an item in the order by Admin based on ID |
+| DELETE   | /orditems/admin/:id | Admin | Delete an item in the order by Admin based on ID |
+
+### Products
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /products        | User, Admin | Show all products |
+| POST    | /products/admin | Admin | Create new product by Admin |
+| PUT   | /products/admin/:id | Admin | Update product by Admin based on ID |
+| DELETE   | /products/admin/:id | Admin | Delete product by Admin based on ID |
+
+### Search
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /search/products        | User, Admin | Search for all products |
+| GET  | /search/admin/users        | Admin | Search for user names by Admin |
+| GET  | /search/admin/orders        | Admin | Search for orders by Admin |
+
+### Users
+| Method       | Endpoint              | Role          | Description           |
+| -------------- | --------------------------- |----------------------| --------------------------- |
+| GET  | /users/profile        | User, Admin | Show Profile (name, image) of the application user |
+| PUT   | /users/profile | User, Admin | Edit Profile (name, image) of the application user |
+| GET  | /users/admin        | Admin | Show list of users by Admin |
+| POST    | /users/admin | Admin | Add new user by Admin |
+| PUT   | /users/admin/:id | Admin | Edit user information by Admin |
+| DELETE   | /users/admin/:id | Admin | Delete user by Admin |
+
+
 
 ## 📁 Project Structure
 
@@ -185,12 +258,6 @@ ikillair/
  ┣ 📂middlewares
  ┃ ┣ 📜authMiddleware.js
  ┃ ┗ 📜rateLimitMiddleware.js
- ┣ 📂node_modules
- ┃ ┗ 📂.cache
- ┃ ┃ ┗ 📂prisma
- ┃ ┃ ┃ ┗ 📂master
- ┃ ┃ ┃ ┃ ┗ 📂75cbdc1eb7150937890ad5465d861175c6624711
- ┃ ┃ ┃ ┃ ┃ ┗ 📂windows
  ┣ 📂prisma
  ┃ ┣ 📂migrations
  ┃ ┃ ┣ 📂20260401160527_ikill_air
@@ -214,7 +281,6 @@ ikillair/
  ┃ ┣ 📜orditemService.js
  ┃ ┣ 📜productService.js
  ┃ ┗ 📜userService.js
- ┣ 📜.env
  ┣ 📜.gitignore
  ┣ 📜app.js
  ┣ 📜package-lock.json
