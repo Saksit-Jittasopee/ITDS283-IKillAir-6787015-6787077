@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: currentMode,
-          home: const MainContainer(isAdmin: true),
+          home: const LoginPage(), 
         );
       },
     );
