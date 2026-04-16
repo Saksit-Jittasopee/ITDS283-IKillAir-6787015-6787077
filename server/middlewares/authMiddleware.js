@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-  // ขอบัตรผ่านจาก Header ที่ Flutter ส่งมา
+  // ขอบัตรผ่านจาก Header ที่ Flutter ส่งมา 
   const authHeader = req.headers['authorization'];
   
   if (!authHeader) {
