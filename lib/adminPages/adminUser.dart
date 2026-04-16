@@ -138,201 +138,204 @@ class _AdminUserState extends State<AdminUser> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Users\nManagement', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.1)),
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminNotification()));
-                            },
-                            icon: const Icon(Icons.notifications_none, size: 28),
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
-                            },
-                            child: ValueListenableBuilder<dynamic>(
-                              valueListenable: profileImageNotifier,
-                              builder: (context, imageVal, child) {
-                                String imagePath = imageVal.toString();
-                                ImageProvider imgProvider;
-                                if (imagePath.contains('assets/')) {
-                                  imgProvider = AssetImage(imagePath);
-                                } else if (imagePath.startsWith('http')) {
-                                  imgProvider = NetworkImage(imagePath);
-                                } else {
-                                  imgProvider = FileImage(File(imagePath));
-                                }
-                                return CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage: imgProvider,
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    onChanged: (value) {
-                      _currentQuery = value;
-                      fetchUsers(_currentQuery);
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search users',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                      suffixIcon: const Icon(Icons.tune),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide(color: Colors.grey.shade300)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide(color: Colors.grey.shade300)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Scrollbar(
-                controller: _scrollController,
-                thumbVisibility: true,
-                thickness: 6,
-                radius: const Radius.circular(10),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: 900,
-                    child: Column(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Users\nManagement', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.1)),
+                    Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                          color: const Color(0xFF007BFF),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 60, child: Text("Status", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                              SizedBox(width: 150, child: Text("Username", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                              SizedBox(width: 100, child: Text("Role", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                              SizedBox(width: 250, child: Text("Email", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                              SizedBox(width: 120, child: Text("Password", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                              SizedBox(width: 100, child: Text("Actions", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                            ],
-                          ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminNotification()));
+                          },
+                          icon: const Icon(Icons.notifications_none, size: 28),
                         ),
-                        Expanded(
-                          child: ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: _users.length,
-                            itemBuilder: (context, index) {
-                              return _buildUserRow(_users[index], index);
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+                          },
+                          child: ValueListenableBuilder<dynamic>(
+                            valueListenable: profileImageNotifier,
+                            builder: (context, imageVal, child) {
+                              String imagePath = imageVal.toString();
+                              ImageProvider imgProvider;
+                              if (imagePath.contains('assets/')) {
+                                imgProvider = AssetImage(imagePath);
+                              } else if (imagePath.startsWith('http')) {
+                                imgProvider = NetworkImage(imagePath);
+                              } else {
+                                imgProvider = FileImage(File(imagePath));
+                              }
+                              return CircleAvatar(
+                                radius: 20,
+                                backgroundImage: imgProvider,
+                              );
                             },
                           ),
                         ),
                       ],
                     ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  onChanged: (value) {
+                    _currentQuery = value;
+                    fetchUsers(_currentQuery);
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search users',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    suffixIcon: const Icon(Icons.tune),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide(color: Colors.grey.shade300)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide(color: Colors.grey.shade300)),
                   ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openAddUserPage(context),
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildUserRow(dynamic user, int index) {
-    bool isActive = user['status'] ?? user['Status'] ?? user['User_Status'] ?? true;
-    bool isAdmin = user['role'] ?? user['Role'] ?? user['User_Role'] ?? false;
-    String username = user['username'] ?? user['Username'] ?? user['User_Name'] ?? 'Unknown';
-    String email = user['email'] ?? user['Email'] ?? user['User_Email'] ?? 'Unknown';
-    String password = '******';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 60,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Icon(
-                isActive ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                color: isActive ? Colors.green : Colors.grey,
-                size: 20,
-              ),
+              ],
             ),
           ),
-          SizedBox(
-            width: 150,
-            child: Text(username, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          ),
-          SizedBox(
-            width: 100,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: isAdmin ? Colors.blue.shade100 : Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
-                child: Text(
-                  isAdmin ? 'Admin' : 'User',
-                  style: TextStyle(fontSize: 12, color: isAdmin ? Colors.blue : Colors.grey.shade700, fontWeight: FontWeight.bold),
+          Expanded(
+            child: Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              thickness: 6,
+              radius: const Radius.circular(10),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: 950,
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                        color: const Color(0xFF007BFF),
+                        child: Row(
+                          children: const [
+                            SizedBox(width: 60,  child: Text("Status",   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            SizedBox(width: 150, child: Text("Username", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            SizedBox(width: 100, child: Text("Role",     style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            SizedBox(width: 250, child: Text("Email",    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            SizedBox(width: 120, child: Text("Password", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                            SizedBox(width: 150, child: Text("Actions",  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500))),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: _users.length,
+                          itemBuilder: (context, index) {
+                            return _buildUserRow(_users[index], index);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(email, style: const TextStyle(fontSize: 14)),
-          ),
-          SizedBox(
-            width: 120,
-            child: Text(password, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-          ),
-          SizedBox(
-            width: 100,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Row(
-                children: [
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                    onPressed: () => _openEditUserPage(context, user, index),
-                  ),
-                  const SizedBox(width: 15),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _confirmDeleteUser(context, user),
-                  ),
-                ],
               ),
             ),
           ),
         ],
       ),
-    );
-  }
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => _openAddUserPage(context),
+      backgroundColor: Colors.blue,
+      child: const Icon(Icons.add, color: Colors.white),
+    ),
+  );
+}
+
+Widget _buildUserRow(dynamic user, int index) {
+  bool isActive = user['status'] ?? user['Status'] ?? user['User_Status'] ?? true;
+  bool isAdmin = user['role'] ?? user['Role'] ?? user['User_Role'] ?? false;
+  String username = user['username'] ?? user['Username'] ?? user['User_Name'] ?? 'Unknown';
+  String email = user['email'] ?? user['Email'] ?? user['User_Email'] ?? 'Unknown';
+  String password = '******';
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 15),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 60,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Icon(
+              isActive ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: isActive ? Colors.green : Colors.grey,
+              size: 20,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 150,
+          child: Text(username, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        ),
+        SizedBox(
+          width: 100,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isAdmin ? Colors.blue.shade100 : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                isAdmin ? 'Admin' : 'User',
+                style: TextStyle(fontSize: 12, color: isAdmin ? Colors.blue : Colors.grey.shade700, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 250,
+          child: Text(email, style: const TextStyle(fontSize: 14)),
+        ),
+        SizedBox(
+          width: 120,
+          child: Text(password, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        ),
+        SizedBox(
+          width: 150,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Row(
+              children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                  onPressed: () => _openEditUserPage(context, user, index),
+                ),
+                const SizedBox(width: 15),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () => _confirmDeleteUser(context, user),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   void _confirmDeleteUser(BuildContext context, dynamic user) {
     String username = user['username'] ?? user['Username'] ?? user['User_Name'] ?? 'Unknown';
