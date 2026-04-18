@@ -17,30 +17,40 @@ class PromptpayScreen extends StatelessWidget {
     String baseUrl = Platform.isAndroid ? 'https://jiblee.arlifzs.site' : 'http://10.0.2.2:3001';
     double total = globalUserCart.fold(0, (sum, item) => sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['qty'] ?? 1)));
 
-    final data = {
+   final orderRes = await http.post(
+    Uri.parse('$baseUrl/api/orders'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${tokenNotifier.value}',
+    },
+    body: jsonEncode({
       'totalPrice': total,
-      'payMet': false,  // Promptpay = false
+      'payMet': false,  
       'status': false,
-      'userId': userIdNotifier.value,      
-    };
+      'userId': userIdNotifier.value
+    }),
+  );
 
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/orders'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${tokenNotifier.value}', 
-        },
-        body: jsonEncode(data),
+  if (orderRes.statusCode == 201) {
+    final orderId = jsonDecode(orderRes.body)['id'];
+
+    for (var item in globalUserCart) {
+      await http.post(
+        Uri.parse('$baseUrl/api/orditems'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'quantity': item['qty'],
+          'price': double.tryParse(item['price'].toString()) ?? 0.0,
+          'orderId': orderId,
+          'productId': item['id']
+        }),
       );
-      if (response.statusCode == 201) {
-        globalUserCart.clear();
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const ThankYouScreen()));
-      }
-    } catch (e) {
-      print(e);
     }
+
+    globalUserCart.clear();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const ThankYouScreen()));
   }
+}
 
   @override
   Widget build(BuildContext context) {

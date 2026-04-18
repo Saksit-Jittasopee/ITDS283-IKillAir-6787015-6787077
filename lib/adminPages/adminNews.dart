@@ -101,7 +101,7 @@ String getImageUrl(String? path) {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('News Management', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const Expanded(child: Text('News Management', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
                   Row(
                     children: [
                       IconButton(

@@ -205,7 +205,7 @@ String getImageUrl(String? path) {
   }
 
   Widget _buildLatestNewsCard(dynamic news) {
-    String displayPath = getImageUrl(news['image']); // ✅ image ไม่ใช่ imagePath
+    String displayPath = getImageUrl(news['image']); 
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,9 +221,9 @@ String getImageUrl(String? path) {
         : const SizedBox(),
           ),
         const SizedBox(height: 15),
-        Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // ✅ name
+        Text(news['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
         const SizedBox(height: 10),
-        Text(news['source'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),        // ✅ source
+        Text(news['source'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),      
       ],
     );
   }
