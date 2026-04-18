@@ -49,7 +49,7 @@
 
 - npm
 
-### Installation
+### Installation on your local devices
 
 1. **Clone the repository**
 
@@ -95,6 +95,10 @@
    ```bash
    flutter run
    ```
+
+### Installation on your local devices
+
+   - You can run the app on your mobile by installing the APK file in our GitHub's repository releases.
 
 ---
 
@@ -177,7 +181,7 @@
 | PUT   | /users/admin/:id | Admin | Edit user information by Admin |
 | DELETE   | /users/admin/:id | Admin | Delete user by Admin |
 
-
+---
 
 ## 📁 Project Structure
 
