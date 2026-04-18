@@ -52,6 +52,7 @@ class _CreateAccountState extends State<CreateAccount> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
+        child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Form(
@@ -128,6 +129,7 @@ class _CreateAccountState extends State<CreateAccount> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
